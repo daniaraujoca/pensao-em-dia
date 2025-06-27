@@ -26,20 +26,17 @@ export { app, auth, db };
 // Função para verificar o estado da autenticação e gerenciar o perfil do usuário
 // Esta função agora GARANTE que o perfil do usuário existe no Firestore
 auth.onAuthStateChanged(async (user) => {
-    const navLinks = document.getElementById("navLinks");
-    // Ajustado para os IDs do seu HTML, se existirem fora da nav
-    const loginLink = document.getElementById("loginLink"); 
-    const logoutLink = document.getElementById("logoutBtn"); // Usando o ID do seu botão "Sair"
-
-    // Elemento para exibir o nome do usuário logado
+    // Estes elementos são globais e devem existir na maioria das páginas
+    const navLinks = document.getElementById("navLinks"); // Se houver
+    const loginLink = document.getElementById("loginLink"); // Se houver
+    const logoutLink = document.getElementById("logoutBtn"); // Seu botão "Sair"
     const nomeUsuarioLogado = document.getElementById("nomeUsuarioLogado");
-
 
     if (user) {
         // Usuário logado
         if (loginLink) loginLink.style.display = "none";
         if (logoutLink) logoutLink.style.display = "block";
-        if (navLinks) navLinks.classList.add("logged-in"); // Adiciona classe para estilizar links logado
+        if (navLinks) navLinks.classList.add("logged-in");
         if (nomeUsuarioLogado) nomeUsuarioLogado.textContent = `Bem-vindo(a), ${user.email}`;
 
         const userProfileRef = doc(db, "users", user.uid);
@@ -47,35 +44,27 @@ auth.onAuthStateChanged(async (user) => {
             const docSnap = await getDoc(userProfileRef);
 
             if (!docSnap.exists()) {
-                // Se o documento do perfil do usuário NÃO EXISTE, cria um
                 console.warn("Documento de perfil do usuário não encontrado no Firestore. Criando agora...");
                 await setDoc(userProfileRef, {
                     email: user.email,
-                    createdAt: new Date(), // Adiciona um timestamp de criação
-                    // Você pode adicionar outros campos iniciais aqui se necessário
-                }, { merge: true }); // Use merge:true para não sobrescrever acidentalmente se o documento for criado externamente.
+                    createdAt: new Date(),
+                }, { merge: true });
                 console.log("Documento de perfil do usuário criado com sucesso para:", user.email);
             } else {
                 console.log("Documento de perfil do usuário encontrado:", docSnap.data().email);
             }
 
-            // Lógica para redirecionar páginas protegidas
             const protectedPages = ["dashboard.html", "gestao.html", "cadastrofilho.html", "dicas.html", "perfil.html"];
-            const currentPage = window.location.pathname.split("/").pop(); // Obtém o nome do arquivo atual
+            const currentPage = window.location.pathname.split("/").pop();
 
             if (protectedPages.includes(currentPage) && window.location.href.includes("index.html?logout=true")) {
-                // Caso especial: se o usuário acabou de fazer logout e está em uma página protegida, redireciona para a home
                 window.location.href = "index.html";
             }
-            // Se o usuário está logado e em uma página que *não deveria* acessar logado (ex: login/registro)
-            // if (currentPage === "index.html" || currentPage === "registro.html") {
-            //     window.location.href = "dashboard.html"; // Redireciona para o dashboard
-            // }
 
         } catch (e) {
             console.error("Erro ao gerenciar o perfil do usuário no Firestore:", e);
             alert("Ocorreu um erro ao carregar seu perfil. Por favor, tente novamente ou entre em contato com o suporte.");
-            signOut(auth); // Força o logout se houver um erro crítico
+            signOut(auth);
             window.location.href = "index.html";
         }
 
@@ -84,9 +73,8 @@ auth.onAuthStateChanged(async (user) => {
         if (loginLink) loginLink.style.display = "block";
         if (logoutLink) logoutLink.style.display = "none";
         if (navLinks) navLinks.classList.remove("logged-in");
-        if (nomeUsuarioLogado) nomeUsuarioLogado.textContent = ''; // Limpa o nome do usuário
+        if (nomeUsuarioLogado) nomeUsuarioLogado.textContent = '';
 
-        // Redireciona para a página inicial (ou login) se tentar acessar uma página protegida
         const protectedPages = ["dashboard.html", "gestao.html", "cadastrofilho.html", "dicas.html", "perfil.html"];
         const currentPage = window.location.pathname.split("/").pop();
 
@@ -98,13 +86,12 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 // Lógica de Logout
-if (document.getElementById("logoutBtn")) { // Usando o ID do seu botão "Sair"
+if (document.getElementById("logoutBtn")) {
     document.getElementById("logoutBtn").addEventListener("click", async (e) => {
         e.preventDefault();
         try {
             await signOut(auth);
             console.log("Usuário deslogado com sucesso!");
-            // Adiciona um parâmetro para que o common.js saiba que foi um logout
             window.location.href = "index.html?logout=true";
         } catch (error) {
             console.error("Erro ao deslogar:", error);
