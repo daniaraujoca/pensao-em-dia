@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
             await setDoc(filhoDocRef, {
                 nome: filho.nome,
                 dataNascimento: filho.dataNascimento,
-                valorMensal: filho.valorMensal, // PADRONIZADO: usando valorMensal
+                valorMensal: filho.valorMensal, // <--- AQUI: PADRONIZADO para valorMensal
                 diaVencimento: filho.diaVencimento, // Adicionado campo que estava faltando no save
                 pagamentos: filho.pagamentos,
                 anosCalculoHabilitados: filho.anosCalculoHabilitados
@@ -181,9 +181,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Se a dívida é 0, o status é sempre verde.
         if (totalDevido === 0) {
             status = "verde";
-        } else if (status === "verde" && temMesesComDivida) { // Isso pode acontecer se os status individuais forem sobrepostos.
-                                                            // O status geral deve refletir a pior situação.
-                                                            // Com a lógica acima, se temDivida e nao é vermelho, então é amarelo.
+        } else if (status === "verde" && temMesesComDivida) { 
             // Já tratado nos loops, esta linha pode ser redundante se a lógica de status estiver perfeita acima,
             // mas mantida para clareza sobre o pensamento.
         }
@@ -416,7 +414,9 @@ document.addEventListener("DOMContentLoaded", function () {
          // Atualiza o texto do botão "Esconder/Mostrar Meses"
         const toggleButton = filhoContentDiv.querySelector('.toggle-meses-btn');
         if (toggleButton) {
-            toggleButton.textContent = mesesGrid.classList.contains('hidden') ? `Mostrar Meses (${yearToDisplay})` : `Esconder Meses (${yearToDisplay})`;
+            // Verifica se mesesGrid existe antes de verificar sua classe
+            const mesesGridCheck = filhoContentDiv.querySelector('.meses-grid');
+            toggleButton.textContent = mesesGridCheck && mesesGridCheck.classList.contains('hidden') ? `Mostrar Meses (${yearToDisplay})` : `Esconder Meses (${yearToDisplay})`;
         }
     }
 
@@ -492,7 +492,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Botões de Excluir Pagamento
         filhoContentDiv.querySelectorAll('.btn-excluir-pagamento').forEach(button => {
             button.removeEventListener('click', excluirPagamentoHandler);
-            button.addEventListener('click', excluirPagamentoHandler);
+            button.addEventListener('click', excluirPaguirPagamentoHandler);
         });
 
         // Botões de Navegação de Ano
@@ -539,9 +539,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Atualiza o texto do botão "Esconder/Mostrar Meses"
         const toggleButton = filhoContentDiv.querySelector('.toggle-meses-btn');
-        const mesesGrid = filhoContentDiv.querySelector('.meses-grid');
-        if (toggleButton && mesesGrid) {
-            toggleButton.textContent = mesesGrid.classList.contains('hidden') ? `Mostrar Meses (${yearInView})` : `Esconder Meses (${yearInView})`;
+        // Verifica se mesesGrid existe antes de verificar sua classe
+        const mesesGridCheck = filhoContentDiv.querySelector('.meses-grid');
+        if (toggleButton && mesesGridCheck) {
+            toggleButton.textContent = mesesGridCheck.classList.contains('hidden') ? `Mostrar Meses (${yearInView})` : `Esconder Meses (${yearInView})`;
         }
     }
 
@@ -614,3 +615,231 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /**
+     * Abre o modal de pagamento para adicionar ou editar.
+     * @param {number} filhoIndexParaModal O índice do filho.
+     * @param {number} mesIdx O índice do mês (0-11).
+     * @param {number} anoPagamento O ano do pagamento.
+     * @param {number} [pagamentoIdx=-1] O índice do pagamento a ser editado (se for edição).
+     */
+    function openModal(filhoIndexParaModal, mesIdx, anoPagamento, pagamentoIdx = -1) {
+        // Atualiza as variáveis de estado globais do modal
+        currentFilhoIndex = parseInt(filhoIndexParaModal);
+        currentFilhoDocId = filhosDoUsuario[currentFilhoIndex].id; // Doc ID do filho
+        currentMesIndex = parseInt(mesIdx);
+        currentYearToDisplay = parseInt(anoPagamento);
+        currentPagamentoIndex = parseInt(pagamentoIdx);
+
+        modalValorInput.value = ''; // Limpa os campos do formulário
+        modalDataInput.value = '';
+        modalDataInput.classList.remove('invalid'); // Remove qualquer estilo de validação
+
+        // Se for edição de pagamento, preenche os campos do modal
+        if (currentPagamentoIndex !== -1) {
+            const filho = filhosDoUsuario[currentFilhoIndex];
+            const pagamento = filho.pagamentos[currentYearToDisplay][currentMesIndex][currentPagamentoIndex];
+            modalValorInput.value = pagamento.valor;
+            modalDataInput.value = pagamento.data;
+            pagamentoModal.querySelector('h2').textContent = 'Editar Pagamento';
+        } else {
+            pagamentoModal.querySelector('h2').textContent = 'Registrar Pagamento';
+        }
+        pagamentoModal.style.display = 'flex'; // Exibe o modal
+    }
+
+    /**
+     * Fecha o modal de pagamento e reseta as variáveis de estado.
+     */
+    function closeModal() {
+        pagamentoModal.style.display = 'none';
+        currentFilhoIndex = -1;
+        currentFilhoDocId = null;
+        currentMesIndex = -1;
+        currentYearToDisplay = new Date().getFullYear(); // Reseta para o ano atual
+        currentPagamentoIndex = -1;
+        pagamentoForm.reset(); // Reseta o formulário
+    }
+
+    // Event listeners para o modal
+    closeButton.addEventListener('click', closeModal);
+    window.addEventListener('click', function(event) {
+        if (event.target === pagamentoModal) { // Fecha o modal se clicar fora dele
+            closeModal();
+        }
+    });
+
+    /**
+     * Formata a entrada de data para DD/MM/AAAA.
+     * @param {HTMLInputElement} input O elemento input da data.
+     */
+    function formatarDataInput(input) {
+        let value = input.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+        let formattedValue = '';
+
+        if (value.length > 0) {
+            formattedValue += value.substring(0, 2);
+            if (value.length >= 2) {
+                formattedValue += '/' + value.substring(2, 4);
+            }
+            if (value.length >= 4) {
+                formattedValue += '/' + value.substring(4, 8);
+            }
+        }
+        input.value = formattedValue;
+    }
+
+    modalDataInput.addEventListener('input', function() {
+        formatarDataInput(this);
+        this.classList.remove('invalid'); // Remove a validação ao digitar
+    });
+
+    /**
+     * Valida se uma string de data está no formato DD/MM/AAAA e é uma data real.
+     * @param {string} dateString A string de data.
+     * @returns {boolean} True se a data for válida, false caso contrário.
+     */
+    function isValidDate(dateString) {
+        if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) return false; // Verifica o formato DD/MM/AAAA
+        const parts = dateString.split('/');
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10);
+        const year = parseInt(parts[2], 10);
+
+        // Cria um objeto Date. O mês é 0-indexed no construtor Date.
+        const date = new Date(year, month - 1, day);
+
+        // Verifica se os valores obtidos do objeto Date correspondem aos valores originais,
+        // garantindo que não houve "rolagem" de data (ex: 31 de fevereiro vira 2 de março).
+        return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
+    }
+
+    /**
+     * Handler para o clique no botão "Adicionar Pagamento".
+     * Abre o modal de pagamento para um novo registro.
+     * @param {Event} e O evento de clique.
+     */
+    function adicionarPagamentoHandler(e) {
+        const filhoIndex = e.currentTarget.dataset.filhoIndex;
+        const mesIndex = e.currentTarget.dataset.mesIndex;
+        const anoPagamento = e.currentTarget.dataset.ano;
+        openModal(filhoIndex, mesIndex, anoPagamento);
+    }
+
+    /**
+     * Handler para o clique no botão "Editar Pagamento".
+     * Abre o modal de pagamento preenchido para edição.
+     * @param {Event} e O evento de clique.
+     */
+    function editarPagamentoHandler(e) {
+        const filhoIndex = e.currentTarget.dataset.filhoIndex;
+        const mesIndex = e.currentTarget.dataset.mesIndex;
+        const pagamentoIndex = e.currentTarget.dataset.pagamentoIndex;
+        const anoPagamento = e.currentTarget.dataset.ano;
+        openModal(filhoIndex, mesIndex, anoPagamento, pagamentoIndex);
+    }
+
+    /**
+     * Handler para o clique no botão "Excluir Pagamento".
+     * Remove o pagamento e atualiza a interface e o Firestore.
+     * @param {Event} e O evento de clique.
+     */
+    async function excluirPagamentoHandler(e) {
+        const filhoIndex = parseInt(e.currentTarget.dataset.filhoIndex);
+        const mesIndex = parseInt(e.currentTarget.dataset.mesIndex);
+        const pagamentoIndex = parseInt(e.currentTarget.dataset.pagamentoIndex);
+        const anoPagamento = parseInt(e.currentTarget.dataset.ano);
+
+        if (confirm("Tem certeza que deseja excluir este pagamento?")) {
+            const filho = filhosDoUsuario[filhoIndex];
+            
+            // Remove o pagamento do array interno do filho
+            filho.pagamentos[anoPagamento][mesIndex].splice(pagamentoIndex, 1);
+            
+            // Salva a estrutura atualizada do filho no Firestore
+            await salvarFilhoNoFirestore(filho);
+
+            // Re-renderiza a seção de meses para refletir a mudança
+            const filhoContentDiv = document.getElementById(`filho-${filhoIndex}-content`);
+            const yearInView = parseInt(filhoContentDiv.querySelector('.current-year').textContent.replace('Ano: ', ''));
+            renderizarMesesParaFilho(filho, filhoContentDiv, yearInView, filhoIndex);
+            // Atualiza o montante devedor geral
+            atualizarMontanteDevedorDisplay(filhoIndex);
+
+            // alert("Pagamento excluído."); // feedback visual mais suave é preferível
+        }
+    }
+
+    /**
+     * Lida com o submit do formulário de pagamento (adicionar/editar).
+     * @param {Event} e O evento de submit.
+     */
+    pagamentoForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const valor = parseFloat(modalValorInput.value);
+        const data = modalDataInput.value;
+
+        if (isNaN(valor) || valor <= 0) {
+            alert("Por favor, insira um valor válido e positivo.");
+            modalValorInput.focus();
+            return;
+        }
+
+        if (!isValidDate(data)) {
+            alert("Por favor, insira uma data válida no formato DD/MM/AAAA.");
+            modalDataInput.classList.add('invalid');
+            modalDataInput.focus();
+            return;
+        }
+
+        const filho = filhosDoUsuario[currentFilhoIndex];
+
+        // Garante que a estrutura de pagamentos para o ano e mês existe
+        if (!filho.pagamentos[currentYearToDisplay]) {
+            filho.pagamentos[currentYearToDisplay] = Array(12).fill().map(() => []);
+        }
+        if (!filho.pagamentos[currentYearToDisplay][currentMesIndex]) {
+            filho.pagamentos[currentYearToDisplay][currentMesIndex] = [];
+        }
+
+        // Adiciona ou atualiza o pagamento
+        if (currentPagamentoIndex !== -1) {
+            filho.pagamentos[currentYearToDisplay][currentMesIndex][currentPagamentoIndex] = {
+                valor: valor,
+                data: data
+            };
+            // alert("Pagamento atualizado com sucesso!"); // feedback visual mais suave é preferível
+        } else {
+            filho.pagamentos[currentYearToDisplay][currentMesIndex].push({
+                valor: valor,
+                data: data
+            });
+            // alert(`Pagamento de R$ ${valor.toFixed(2)} em ${data} adicionado.`); // feedback visual mais suave é preferível
+        }
+
+        // Salva as alterações no Firestore
+        await salvarFilhoNoFirestore(filho);
+
+        // Re-renderiza a seção de meses para refletir a mudança
+        const filhoContentDiv = document.getElementById(`filho-${currentFilhoIndex}-content`);
+        const yearInView = parseInt(filhoContentDiv.querySelector('.current-year').textContent.replace('Ano: ', ''));
+        renderizarMesesParaFilho(filho, filhoContentDiv, yearInView, currentFilhoIndex);
+        // Atualiza o montante devedor geral
+        atualizarMontanteDevedorDisplay(currentFilhoIndex);
+
+        closeModal(); // Fecha o modal
+    });
+
+    // Inicia o carregamento da gestão quando o estado de autenticação muda.
+    // Isso garante que a página só é renderizada para usuários logados.
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            renderizarGestaoCompleta();
+        } else {
+            // O common.js já lida com redirecionamento de pages protegidas.
+            // Aqui apenas garantimos que se por algum motivo auth.currentUser estiver nulo,
+            // o usuário será redirecionado para a página inicial.
+            console.warn("Usuário não autenticado na página de gestão. Redirecionando.");
+            window.location.href = "index.html"; 
+        }
+    });
+});
