@@ -1,58 +1,85 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pensao em Dia - Gestão de Pensão</title>
-    <link rel="stylesheet" href="style.css">
-       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40NZMfHAaXZoLkws/L+gd7/oZlYdBlglSmDqjs7BvK8o+2s7uO/D9bXv1vV2k/Fk9vF9C9F9F9F9F9==
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pensão em Dia - Gestão</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-     <header class="menu-superior">
-        <h1>Pensão em Dia</h1>
-        <nav class="abas-navegacao">
-            <a href="./cadastrofilho.html" class="aba">Cadastro de Filhos</a>
-            <a href="./gestao.html" class="aba">Gestão de Pensão</a>
-            <a href="./dicas.html" class="aba">Dicas</a>
-        </nav>
-        <span id="nomeUsuarioLogado" class="bem-vindo-usuario"></span>
-        <button id="logoutBtn" class="logout-btn">Sair</button>
-    </header>
-    <div class="container">
-        <h1>Gestão de Pensão Alimentícia</h1>
-        
-        <div id="filhoTabs">
-                    </div>
+    <div class="menu-superior">
+        <span id="usuarioLogadoNome"></span>
+        <button id="logoutBtn" class="btn-logout">Sair</button>
+    </div>
 
-        <div id="filhosContent">
-            <p>Carregando dados da pensão...</p>
-        </div>
+    <div class="container">
+        <div class="header-gestao">
+            <h1>Gestão da Pensão Alimentícia</h1>
+            <div class="acoes-globais">
+                <a href="cadastrofilho.html" class="btn-primario">Cadastrar Novo Filho</a>
+                <a href="dicas.html" class="btn-secundario">Dicas Importantes</a>
+            </div>
+        </div>
 
-    </div>
+        <div class="abas-navegacao">
+            <button class="tab-button active" data-tab="filhos">Lista de Filhos</button>
+            <button class="tab-button" data-tab="perfil">Seu Perfil</button>
+        </div>
 
-    <div id="pagamentoModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" id="closePagamentoModalBtn">&times;</span>             <h2>Registrar Pagamento</h2>
-            <form id="pagamentoForm">
-                <input type="hidden" id="pagamentoFilhoIdInput">
-
-                <label for="modalValor">Valor:</label>
-                <input type="number" id="modalValor" step="0.01" required>
-
-                <label for="modalData">Data (DD/MM/AAAA):</label>
-                <input type="text" id="modalData" placeholder="DD/MM/AAAA" maxlength="10" required>
-
-                <h3>Pagamentos Anteriores:</h3>
-                <div id="pagamentos-list-container" class="pagamentos-anteriores">
-                    <p>Nenhum pagamento registrado.</p>
+        <div id="filhosTab" class="tab-content active">
+            <h3>Seus Filhos Cadastrados</h3>
+            <div id="filhosContainer" class="filhos-container">
+                <p id="loadingMessage">Carregando filhos...</p>
                 </div>
+        </div>
 
-                <button type="submit">Salvar Pagamento</button>
-            </form>
-        </div>
-    </div>
+        <div id="perfilTab" class="tab-content">
+            <h3>Informações do Seu Perfil</h3>
+            <div id="perfilUsuarioContainer" class="perfil-usuario-container">
+                <p><strong>Nome:</strong> <span id="perfilNome">Carregando...</span></p>
+                <p><strong>Email:</strong> <span id="perfilEmail">Carregando...</span></p>
+                <button id="editPerfilBtn" class="btn-primario">Editar Perfil</button>
+                </div>
+        </div>
 
-    <script type="module" src="common.js"></script>
-    <script type="module" src="gestao.js"></script>
-    </body>
+        <div id="feedbackMessage" class="feedback-message" style="display: none;"></div>
+    </div>
+
+    <div id="pagamentoModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Registrar Pagamento</h2>
+            <form id="pagamentoForm">
+                <input type="hidden" id="modalFilhoId">
+                <input type="hidden" id="modalMesAnoId">
+
+                <label for="modalValorPago">Valor Pago (R$):</label>
+                <input type="number" id="modalValorPago" step="0.01" required />
+
+                <label for="modalDataPagamento">Data do Pagamento:</label>
+                <input type="date" id="modalDataPagamento" required />
+
+                <label for="modalMetodoPagamento">Método de Pagamento:</label>
+                <select id="modalMetodoPagamento" required>
+                    <option value="">Selecione...</option>
+                    <option value="pix">PIX</option>
+                    <option value="transferencia">Transferência Bancária</option>
+                    <option value="dinheiro">Dinheiro</option>
+                    <option value="deposito">Depósito</option>
+                    <option value="outro">Outro</option>
+                </select>
+
+                <label for="modalObservacoesPagamento">Observações:</label>
+                <textarea id="modalObservacoesPagamento" rows="3"></textarea>
+
+                <div class="modal-buttons">
+                    <button type="submit">Registrar Pagamento</button>
+                    <button type="button" id="cancelPagamentoBtn" class="btn-secundario">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="common.js"></script>
+    <script type="module" src="gestao.js"></script>
+</body>
 </html>
