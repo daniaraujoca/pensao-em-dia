@@ -1,136 +1,78 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("formCadastro");
-    const listaFilhos = document.getElementById("listaFilhos");
-    let editandoIndex = null; // Mantém o controle do índice do filho sendo editado
+// Importa as funções necessárias do Firestore
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-    // OBS: A verificação de login foi movida para common.js.
-    // Manter aqui apenas a lógica específica da página de cadastro de filhos.
-    const usuarioLogadoEmail = localStorage.getItem("usuarioLogadoEmail");
+document.addEventListener("DOMContentLoaded", function () {
+    const cadastroFilhoForm = document.getElementById("cadastroFilhoForm");
+    const feedbackCadastroFilho = document.getElementById("feedbackCadastroFilho");
 
-    const getFilhosDoUsuario = () => {
-        const filhosPorUsuario = JSON.parse(localStorage.getItem("filhosPorUsuario")) || {};
-        return filhosPorUsuario[usuarioLogadoEmail] || [];
-    };
+    // Obtém as instâncias de autenticação e banco de dados do Firebase
+    const auth = window.auth;
+    const db = window.db;
 
-    const salvarFilhosDoUsuario = (filhos) => {
-        const filhosPorUsuario = JSON.parse(localStorage.getItem("filhosPorUsuario")) || {};
-        filhosPorUsuario[usuarioLogadoEmail] = filhos;
-        localStorage.setItem("filhosPorUsuario", JSON.stringify(filhosPorUsuario));
-    };
+    if (cadastroFilhoForm) {
+        cadastroFilhoForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
 
-    // Carrega os filhos do usuário logado ao iniciar
-    let filhos = getFilhosDoUsuario();
+            feedbackCadastroFilho.style.display = "none";
+            feedbackCadastroFilho.classList.remove("success", "error");
 
-    const formatarData = (dataISO) => {
-        if (!dataISO) return "";
-        const [ano, mes, dia] = dataISO.split("-");
-        return `${dia}/${mes}/${ano}`;
-    };
-
-    const renderizarFilhos = () => {
-        listaFilhos.innerHTML = ""; // Limpa a lista antes de renderizar
-
-        if (filhos.length === 0) {
-            listaFilhos.innerHTML = '<div class="sem-filhos">Nenhum filho cadastrado ainda.</div>';
-            return;
-        }
-
-        filhos.forEach((filho, index) => {
-            const div = document.createElement("div");
-            div.className = "filho-item";
-            div.innerHTML = `
-                <div class="info-filho">
-                    <strong>${filho.nome}</strong>
-                    <span>Sexo: ${filho.sexo}</span>
-                    <span>Nascimento: ${formatarData(filho.dataNascimento)}</span>
-                    <span>Pensão: R$ ${Number(filho.valorPensao).toFixed(2).replace('.', ',')}</span>
-                </div>
-                <div class="botoes-acao">
-                    <button class="btn-editar" data-index="${index}">Editar</button>
-                    <button class="btn-excluir" data-index="${index}">Excluir</button>
-                </div>
-            `;
-            listaFilhos.appendChild(div);
-        });
-
-        // Adiciona event listeners aos botões de editar e excluir
-        document.querySelectorAll(".btn-editar").forEach(btn => {
-            btn.addEventListener("click", (e) => editarFilho(e.target.dataset.index));
-        });
-
-        document.querySelectorAll(".btn-excluir").forEach(btn => {
-            btn.addEventListener("click", (e) => excluirFilho(e.target.dataset.index));
-        });
-    };
-
-    const editarFilho = (index) => {
-        const filho = filhos[index];
-        document.getElementById("nomeFilho").value = filho.nome;
-        document.getElementById("sexoFilho").value = filho.sexo;
-        document.getElementById("dataNascimentoFilho").value = filho.dataNascimento;
-        document.getElementById("valorPensaoFilho").value = filho.valorPensao;
-        document.getElementById("indiceEdicao").value = index; // Armazena o índice para edição
-        editandoIndex = index; // Atualiza a variável de controle
-
-        // Scroll para o formulário e foca no primeiro campo
-        document.querySelector(".form-section").scrollIntoView({ behavior: "smooth" });
-        document.getElementById("nomeFilho").focus();
-    };
-
-    const excluirFilho = (index) => {
-        if (confirm("Tem certeza que deseja excluir este filho?")) {
-            filhos.splice(index, 1); // Remove o filho do array
-            salvarFilhosDoUsuario(filhos); // Salva o array atualizado no localStorage
-            renderizarFilhos(); // Renderiza a lista novamente
-
-            // Se o item excluído era o que estava sendo editado, reseta o formulário
-            if (editandoIndex === Number(index)) { // Comparar como número
-                form.reset();
-                document.getElementById("indiceEdicao").value = "";
-                editandoIndex = null;
+            const user = auth.currentUser; // Obtém o usuário atualmente logado
+            if (!user) {
+                feedbackCadastroFilho.textContent = "Você precisa estar logado para cadastrar um filho.";
+                feedbackCadastroFilho.classList.add("error");
+                feedbackCadastroFilho.style.display = "block";
+                setTimeout(() => { window.location.href = "./index.html"; }, 2000);
+                return;
             }
-        }
-    };
 
-    // Event listener para o envio do formulário
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
+            const nomeFilho = document.getElementById("nomeFilho").value.trim();
+            const dataNascimento = document.getElementById("dataNascimento").value;
+            const valorMensal = parseFloat(document.getElementById("valorMensal").value);
+            const diaVencimento = parseInt(document.getElementById("diaVencimento").value);
 
-        const novoFilho = {
-            nome: document.getElementById("nomeFilho").value.trim(),
-            sexo: document.getElementById("sexoFilho").value,
-            dataNascimento: document.getElementById("dataNascimentoFilho").value,
-            valorPensao: parseFloat(document.getElementById("valorPensaoFilho").value).toFixed(2),
-            // Inicializa a estrutura de pagamentos para 12 meses, cada um com um array vazio
-            // Isso é importante para a página de gestão
-            pagamentos: Array(12).fill().map(() => [])
-        };
+            if (!nomeFilho || !dataNascimento || isNaN(valorMensal) || isNaN(diaVencimento)) {
+                feedbackCadastroFilho.textContent = "Por favor, preencha todos os campos corretamente.";
+                feedbackCadastroFilho.classList.add("error");
+                feedbackCadastroFilho.style.display = "block";
+                return;
+            }
 
-        const index = document.getElementById("indiceEdicao").value;
+            if (diaVencimento < 1 || diaVencimento > 31) {
+                feedbackCadastroFilho.textContent = "O dia do vencimento deve ser entre 1 e 31.";
+                feedbackCadastroFilho.classList.add("error");
+                feedbackCadastroFilho.style.display = "block";
+                return;
+            }
 
-        if (index === "") { // Se o índice de edição estiver vazio, é um novo cadastro
-            filhos.push(novoFilho);
-        } else { // Caso contrário, é uma edição
-            // Preserva os pagamentos existentes ao editar
-            novoFilho.pagamentos = filhos[index].pagamentos || Array(12).fill().map(() => []);
-            filhos[index] = novoFilho;
-        }
+            try {
+                // Adiciona um novo documento à coleção 'filhos'
+                // O UID do usuário garante que cada filho está associado ao seu criador
+                const docRef = await addDoc(collection(db, "filhos"), {
+                    userId: user.uid, // UID do usuário logado
+                    nome: nomeFilho,
+                    dataNascimento: dataNascimento, // Salva como string YYYY-MM-DD
+                    valorMensal: valorMensal,
+                    diaVencimento: diaVencimento,
+                    criadoEm: new Date(), // Timestamp de criação
+                    pagamentos: [] // Inicializa uma array vazia para pagamentos
+                });
 
-        salvarFilhosDoUsuario(filhos); // Salva os filhos atualizados
-        form.reset(); // Limpa o formulário
-        document.getElementById("indiceEdicao").value = ""; // Reseta o campo de índice de edição
-        editandoIndex = null; // Reseta a variável de controle
-        renderizarFilhos(); // Atualiza a lista exibida
+                feedbackCadastroFilho.textContent = `Filho(a) ${nomeFilho} cadastrado(a) com sucesso!`;
+                feedbackCadastroFilho.classList.add("success");
+                feedbackCadastroFilho.style.display = "block";
+                cadastroFilhoForm.reset(); // Limpa o formulário
 
-        // Mensagem de feedback
-        const feedback = document.createElement("div");
-        feedback.className = "feedback-message";
-        feedback.textContent = index === "" ? "Filho cadastrado com sucesso!" : "Filho atualizado com sucesso!";
-        form.appendChild(feedback);
+                // Redireciona para a página de gestão após o cadastro
+                setTimeout(() => {
+                    window.location.href = "./gestao.html";
+                }, 1500);
 
-        setTimeout(() => feedback.remove(), 3000); // Remove a mensagem após 3 segundos
-    });
-
-    // Renderiza a lista de filhos ao carregar a página
-    renderizarFilhos();
+            } catch (e) {
+                console.error("Erro ao adicionar documento: ", e);
+                feedbackCadastroFilho.textContent = "Erro ao cadastrar filho(a). Tente novamente.";
+                feedbackCadastroFilho.classList.add("error");
+                feedbackCadastroFilho.style.display = "block";
+            }
+        });
+    }
 });
