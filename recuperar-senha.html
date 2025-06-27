@@ -1,31 +1,33 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pensão em Dia - Recuperar Senha</title>
-    <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Senha - Pensão em Dia</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Recuperar Senha</h2>
-        <form id="recuperarSenhaForm">
-            <p>Informe seu e-mail para recuperar o acesso.</p>
-            <label for="emailRecuperacao">Email:</label>
-            <input type="email" id="emailRecuperacao" name="emailRecuperacao" required />
+    <header class="menu-superior">
+        <h1>Pensão em Dia</h1>
+    </header>
 
+    <div class="container">
+        <h1>Recuperar Senha</h1>
+        <form id="recuperarSenhaForm">
+            <div class="form-group">
+                <label for="recuperarEmail">Email:</label>
+                <input type="email" id="recuperarEmail" required>
+            </div>
             <button type="submit">Enviar Link de Recuperação</button>
         </form>
-        <div class="link-login">
-            <p>Lembrou? <a href="./index.html">Voltar para o Login</a></p>
-        </div>
-        <div id="feedbackRecuperacao" class="feedback-message" style="display: none;"></div>
+        <p id="feedbackRecuperacao" class="feedback-message"></p>
+        <p><a href="./index.html">Voltar para o Login</a></p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; // NOVO: Firestore SDK
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; 
         
         const firebaseConfig = {
           apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
@@ -38,9 +40,8 @@
         };
         const app = initializeApp(firebaseConfig);
         window.auth = getAuth(app); 
-        window.db = getFirestore(app); // NOVO: Inicializa o Firestore e o torna global
+        window.db = getFirestore(app); 
     </script>
-    
     <script src="./recuperar-senha.js" type="module"></script>
 </body>
 </html>
