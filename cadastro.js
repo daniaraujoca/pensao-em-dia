@@ -1,68 +1,52 @@
-// Importa as funções específicas do Firebase Auth para cadastro e atualização de perfil
-import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
     const cadastroForm = document.getElementById("cadastroForm");
+    const feedbackCadastro = document.getElementById("feedbackCadastro");
 
-    // Obtém a instância de autenticação globalmente
+    // Acessa window.auth que é definido no HTML
     const auth = window.auth;
 
     if (cadastroForm) {
-        cadastroForm.addEventListener("submit", function (e) {
+        cadastroForm.addEventListener("submit", async function(e) {
             e.preventDefault();
 
-            const nome = document.getElementById("cadastroNome").value.trim();
-            const sobrenome = document.getElementById("cadastroSobrenome").value.trim();
-            const email = document.getElementById("cadastroEmail").value.trim().toLowerCase();
-            const senha = document.getElementById("cadastroSenha").value;
-            const confirmarSenha = document.getElementById("cadastroConfirmarSenha").value;
+            feedbackCadastro.style.display = "none";
+            feedbackCadastro.classList.remove("success", "error");
 
-            if (!nome || !sobrenome || !email || !senha || !confirmarSenha) {
-                alert("Preencha todos os campos.");
+            const email = document.getElementById("cadastroEmail").value;
+            const password = document.getElementById("cadastroPassword").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+
+            if (password !== confirmPassword) {
+                feedbackCadastro.textContent = "As senhas não coincidem.";
+                feedbackCadastro.classList.add("error");
+                feedbackCadastro.style.display = "block";
                 return;
             }
 
-            if (senha !== confirmarSenha) {
-                alert("As senhas não coincidem.");
-                return;
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                feedbackCadastro.textContent = "Cadastro bem-sucedido! Redirecionando para o login...";
+                feedbackCadastro.classList.add("success");
+                feedbackCadastro.style.display = "block";
+                setTimeout(() => {
+                    window.location.href = "./index.html"; 
+                }, 1500); 
+            } catch (error) {
+                let errorMessage = "Erro no cadastro. Tente novamente.";
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = "Este email já está em uso.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Formato de email inválido.";
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = "A senha é muito fraca (mínimo de 6 caracteres).";
+                }
+                console.error("Erro de cadastro:", error);
+                feedbackCadastro.textContent = errorMessage;
+                feedbackCadastro.classList.add("error");
+                feedbackCadastro.style.display = "block";
             }
-
-            // Usa a função importada para criar o usuário
-            createUserWithEmailAndPassword(auth, email, senha) // Note: auth é o primeiro argumento
-                .then((userCredential) => {
-                    const user = userCredential.user;
-
-                    // Usa a função importada para atualizar o perfil do usuário
-                    return updateProfile(user, { // Note: user é o primeiro argumento
-                        displayName: `${nome} ${sobrenome}`
-                    })
-                    .then(() => {
-                        localStorage.setItem("usuarioLogadoEmail", user.email);
-                        localStorage.setItem("usuarioLogadoNome", user.displayName);
-                        
-                        alert("Cadastro realizado com sucesso! Faça login.");
-                        window.location.href = "./index.html"; // Caminho corrigido
-                    });
-                })
-                .catch((error) => {
-                    let errorMessage = "Erro ao cadastrar. Tente novamente.";
-
-                    switch (error.code) {
-                        case 'auth/email-already-in-use':
-                            errorMessage = "Este e-mail já está cadastrado.";
-                            break;
-                        case 'auth/invalid-email':
-                            errorMessage = "O formato do e-mail é inválido.";
-                            break;
-                        case 'auth/weak-password':
-                            errorMessage = "A senha deve ter no mínimo 6 caracteres.";
-                            break;
-                        default:
-                            console.error("Erro de cadastro Firebase:", error.code, error.message);
-                            errorMessage = "Ocorreu um erro inesperado. Tente novamente.";
-                    }
-                    alert(errorMessage);
-                });
         });
     }
 });
