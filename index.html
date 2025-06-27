@@ -22,6 +22,9 @@
         <div class="link-cadastro">
             <p>Não tem uma conta? <a href="cadastro.html">Cadastre-se aqui</a></p>
         </div>
+        <div class="link-recuperar-senha">
+            <p><a href="recuperar-senha.html">Esqueceu sua senha?</a></p>
+        </div>
         <div id="feedbackMessage" class="feedback-message" style="display: none;"></div>
     </div>
 
@@ -29,12 +32,9 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-          // Caminho corrigido para o service-worker.js
           navigator.serviceWorker.register('service-worker.js').then(function(registration) {
-            // Registro bem-sucedido
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
           }, function(err) {
-            // Registro falhou :(
             console.log('ServiceWorker registration failed: ', err);
           });
         });
