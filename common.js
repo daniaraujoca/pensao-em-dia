@@ -3,14 +3,15 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// Sua configuração do Firebase (substitua pelos seus dados reais)
+// Sua configuração do Firebase (substituída pelos seus dados reais)
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4",
+  authDomain: "pensaoemdiaapp.firebaseapp.com",
+  projectId: "pensaoemdiaapp",
+  storageBucket: "pensaoemdiaapp.firebasestorage.app",
+  messagingSenderId: "322478168070",
+  appId: "1:322478168070:web:494318199ac307c7868b87",
+  measurementId: "G-WZ5ZGMWJJH"
 };
 
 // Inicializa o Firebase
