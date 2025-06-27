@@ -3,7 +3,6 @@ import { db, auth } from "./common.js"; // Importar db e auth do common.js
 import { collection, doc, getDocs, setDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Referências aos elementos do DOM
     const filhoTabsContainer = document.getElementById("filhoTabs");
     const filhosContentContainer = document.getElementById("filhosContent");
     const pagamentoModal = document.getElementById("pagamentoModal");
@@ -12,28 +11,22 @@ document.addEventListener("DOMContentLoaded", function () {
     const modalValorInput = document.getElementById("modalValor");
     const modalDataInput = document.getElementById("modalData");
 
-    // Variáveis de estado
-    let currentFilhoDocId = null; // ID do documento do filho no Firestore
-    let currentFilhoIndex = -1; // Índice do filho no array local (para navegação e acesso rápido)
+    let currentFilhoDocId = null;
+    let currentFilhoIndex = -1;
     let currentMesIndex = -1;
     let currentYearToDisplay = new Date().getFullYear();
     let currentPagamentoIndex = -1;
 
-    let filhosDoUsuario = []; // Array que armazenará os dados dos filhos carregados do Firestore
+    let filhosDoUsuario = [];
 
-    // Nomes dos meses para exibição
     const mesesNomes = [
         "Janeiro", "Fevereiro", "Março", "Abril",
         "Maio", "Junho", "Julho", "Agosto",
         "Setembro", "Outubro", "Novembro", "Dezembro"
     ];
 
-    // --- Funções de Dados e Armazenamento (AGORA COM FIRESTORE) ---
-
-    // Função para buscar os filhos do Firestore para o usuário logado
     async function getFilhosDoUsuarioFirestore() {
         return new Promise((resolve, reject) => {
-            // Garantir que o usuário esteja autenticado antes de buscar os dados
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
                     const userId = user.uid;
@@ -41,11 +34,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     try {
                         const querySnapshot = await getDocs(filhosRef);
                         const filhos = querySnapshot.docs.map(doc => ({
-                            id: doc.id, // O ID do documento do Firestore
+                            id: doc.id,
                             ...doc.data()
                         }));
-
-                        // Normalizar pagamentos e anos habilitados ao carregar
                         resolve(normalizePagamentos(filhos));
                     } catch (e) {
                         console.error("Erro ao buscar filhos do Firestore: ", e);
@@ -53,15 +44,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 } else {
                     console.warn("Usuário não autenticado. Não é possível buscar filhos.");
-                    // Redirecionar para login ou exibir mensagem adequada
-                    window.location.href = "index.html"; // Exemplo: redireciona para a página de login
+                    window.location.href = "index.html";
                     reject(new Error("Usuário não autenticado."));
                 }
             });
         });
     }
 
-    // Função para salvar UM filho específico no Firestore (usado para atualizações)
     async function salvarFilhoNoFirestore(filho) {
         if (!auth.currentUser) {
             console.error("Usuário não autenticado. Não é possível salvar dados.");
@@ -72,7 +61,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const userId = auth.currentUser.uid;
         const filhoDocRef = doc(db, "users", userId, "filhos", filho.id);
         try {
-            await setDoc(filhoDocRef, { // setDoc sobrescreve ou cria, use updateDoc para atualizar campos específicos
+            // setDoc sobrescreve. Para atualizações parciais, updateDoc seria usado.
+            // Para a estrutura de 'pagamentos' que é um objeto aninhado, setDoc é mais simples aqui.
+            await setDoc(filhoDocRef, {
                 nome: filho.nome,
                 dataNascimento: filho.dataNascimento,
                 valorPensao: filho.valorPensao,
@@ -86,7 +77,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // A função normalizePagamentos permanece a mesma, pois normaliza a estrutura localmente
     function normalizePagamentos(filhos) {
         return filhos.map(filho => {
             if (!filho.pagamentos) {
@@ -95,25 +85,21 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!filho.anosCalculoHabilitados || !Array.isArray(filho.anosCalculoHabilitados)) {
                 filho.anosCalculoHabilitados = [];
             }
-            // Para cada ano que já existe em pagamentos, garantir que é um array de 12 meses
             for (const year in filho.pagamentos) {
                 if (filho.pagamentos.hasOwnProperty(year)) {
                     if (!Array.isArray(filho.pagamentos[year])) {
-                        // Se for um formato antigo (ex: array linear), converte para a nova estrutura de meses
                         const oldPagamentos = filho.pagamentos[year];
                         filho.pagamentos[year] = Array(12).fill().map(() => []);
-                        if (Array.isArray(oldPagamentos)) { // Tenta migrar pagamentos antigos
+                        if (Array.isArray(oldPagamentos)) {
                             oldPagamentos.forEach(p => {
-                                // Assumindo que a data do pagamento é DD/MM/AAAA
                                 const pParts = p.data.split('/');
-                                const pMonth = parseInt(pParts[1], 10) - 1; // Mês 0-11
+                                const pMonth = parseInt(pParts[1], 10) - 1;
                                 if (pMonth >= 0 && pMonth < 12) {
                                     filho.pagamentos[year][pMonth].push(p);
                                 }
                             });
                         }
                     } else if (filho.pagamentos[year].length < 12) {
-                        // Se o array de meses for menor que 12, preencher com arrays vazios
                         while (filho.pagamentos[year].length < 12) {
                             filho.pagamentos[year].push([]);
                         }
@@ -124,7 +110,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- Cálculo do Montante Devedor (permanece o mesmo) ---
     function calcularMontanteDevido(filho) {
         const valorMensal = parseFloat(filho.valorPensao);
         const hoje = new Date();
@@ -172,7 +157,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return { totalDevido, status };
     }
 
-    // --- Função para Calcular Idade (permanece a mesma) ---
     function calcularIdade(dataNascimentoStr) {
         if (!dataNascimentoStr) return "N/A";
 
@@ -202,55 +186,50 @@ document.addEventListener("DOMContentLoaded", function () {
         return idade;
     }
 
-    // --- Função principal para renderizar as abas e o conteúdo dos filhos ---
     async function renderizarGestaoCompleta() {
         filhoTabsContainer.innerHTML = "";
         filhosContentContainer.innerHTML = "";
 
         try {
-            filhosDoUsuario = await getFilhosDoUsuarioFirestore(); // Popula o array global
+            filhosDoUsuario = await getFilhosDoUsuarioFirestore();
         } catch (error) {
             console.error("Não foi possível carregar os filhos:", error);
             filhosContentContainer.innerHTML = `<div class="feedback-message error">Erro ao carregar os dados dos filhos. Por favor, tente recarregar a página.</div>`;
             return;
         }
 
+        const yearNavigation = document.querySelector('.year-navigation'); // Buscar fora do loop para não criar duplicatas
+        const yearEnableToggle = document.querySelector('.year-enable-toggle'); // Buscar fora do loop
+
         if (filhosDoUsuario.length === 0) {
             filhosContentContainer.innerHTML = `
-                <div class="no-children-message">
+                <div class="sem-filhos-gestao">
                     <p>Nenhum filho cadastrado para gestão ainda. <a href="cadastrofilho.html">Cadastre um filho</a> para começar!</p>
                 </div>
             `;
-            const yearNavigation = document.querySelector('.year-navigation');
-            const yearEnableToggle = document.querySelector('.year-enable-toggle');
             if (yearNavigation) yearNavigation.style.display = 'none';
             if (yearEnableToggle) yearEnableToggle.style.display = 'none';
             return;
+        } else {
+            if (yearNavigation) yearNavigation.style.display = 'flex'; // Exibir se houver filhos
+            if (yearEnableToggle) yearEnableToggle.style.display = 'block'; // Exibir se houver filhos
         }
-
-        const yearNavigation = document.querySelector('.year-navigation');
-        const yearEnableToggle = document.querySelector('.year-enable-toggle');
-        if (yearNavigation) yearNavigation.style.display = 'flex';
-        if (yearEnableToggle) yearEnableToggle.style.display = 'block';
 
         filhosDoUsuario.forEach((filho, filhoIndex) => {
             const tabButton = document.createElement("button");
             tabButton.classList.add("tab-button");
             tabButton.textContent = filho.nome;
             tabButton.dataset.filhoIndex = filhoIndex;
-            tabButton.dataset.filhoDocId = filho.id; // Armazenar o ID do documento
+            tabButton.dataset.filhoDocId = filho.id;
             filhoTabsContainer.appendChild(tabButton);
 
             const filhoContentDiv = document.createElement("div");
             filhoContentDiv.classList.add("filho-content");
-            filhoContentDiv.id = `filho-${filhoIndex}-content`; // ID baseado no índice local
+            filhoContentDiv.id = `filho-${filhoIndex}-content`;
 
             const { totalDevido, status } = calcularMontanteDevido(filho);
             const idadeFilho = calcularIdade(filho.dataNascimento);
 
-            // Determina o ano inicial a ser exibido para cada filho.
-            // Pode ser o ano atual, ou o ano que estava sendo exibido se já estiver setado em currentYearToDisplay
-            // Para garantir que cada aba inicie com o ano atual ou o último ano visitado
             const initialYearForFilho = new Date().getFullYear();
 
             filhoContentDiv.innerHTML = `
@@ -276,7 +255,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div class="year-enable-toggle">
                         <label>
                             <input type="checkbox" class="enable-year-checkbox" data-filho-index="${filhoIndex}">
-                            Habilitar ${initialYearForFilho} para cálculo de dívida de <span class="display-year-for-toggle">${filho.nome}</span>
+                            Habilitar <span class="display-year-for-toggle">${initialYearForFilho}</span> para cálculo de dívida de <span class="display-name-for-toggle">${filho.nome}</span>
                         </label>
                         <small>Apenas anos habilitados são considerados no montante devedor.</small>
                     </div>
@@ -287,7 +266,6 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
             filhosContentContainer.appendChild(filhoContentDiv);
 
-            // Renderiza os meses para o ano inicial de cada filho
             renderizarMesesParaFilho(filho, filhoContentDiv, initialYearForFilho, filhoIndex);
 
             tabButton.addEventListener('click', function() {
@@ -300,12 +278,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // --- Função para renderizar os meses para um filho específico e um ano específico ---
     function renderizarMesesParaFilho(filho, filhoContentDiv, yearToDisplay, filhoIndex) {
         const mesesGrid = filhoContentDiv.querySelector(".meses-grid");
         mesesGrid.innerHTML = "";
 
-        // Garante que o objeto de pagamentos para o ano exista e esteja normalizado
         if (!filho.pagamentos[yearToDisplay]) {
             filho.pagamentos[yearToDisplay] = Array(12).fill().map(() => []);
         } else if (filho.pagamentos[yearToDisplay].length < 12) {
@@ -336,7 +312,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     statusMesClass = "nao-pago";
                 }
             } else {
-                statusMesClass = "";
+                statusMesClass = ""; // Futuro ou mês atual não passado ainda, sem status de dívida
             }
 
             if (statusMesClass) {
@@ -367,12 +343,11 @@ document.addEventListener("DOMContentLoaded", function () {
             enableYearCheckbox.checked = isYearEnabled;
             enableYearCheckbox.removeEventListener('change', handleEnableYearChange);
             enableYearCheckbox.addEventListener('change', handleEnableYearChange);
-            // Atualiza o texto do checkbox para o ano correto
             enableYearCheckbox.closest('label').querySelector('.display-year-for-toggle').textContent = yearToDisplay;
+            enableYearCheckbox.closest('label').querySelector('.display-name-for-toggle').textContent = filho.nome;
         }
     }
 
-    // --- Função para ativar uma aba específica ---
     function activateTab(filhoIndex) {
         if (filhoIndex < 0 || filhoIndex >= filhosDoUsuario.length) return;
 
@@ -385,11 +360,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (selectedTabButton) selectedTabButton.classList.add('active');
         if (selectedFilhoContent) selectedFilhoContent.classList.add('active');
 
-        // Atualiza as variáveis de estado globais para o filho ativo
         currentFilhoIndex = filhoIndex;
-        currentFilhoDocId = filhosDoUsuario[filhoIndex].id; // Atualiza o ID do documento
+        currentFilhoDocId = filhosDoUsuario[filhoIndex].id;
 
-        // Pega o ano que estava sendo exibido para este filho (ou o ano atual)
         currentYearToDisplay = selectedFilhoContent.querySelector('.current-year') ?
                                 parseInt(selectedFilhoContent.querySelector('.current-year').textContent.replace('Ano: ', '')) :
                                 new Date().getFullYear();
@@ -402,12 +375,12 @@ document.addEventListener("DOMContentLoaded", function () {
              toggleButton.textContent = mesesGrid.classList.contains('hidden') ? `Mostrar Meses (${currentYearToDisplay})` : `Esconder Meses (${currentYearToDisplay})`;
         }
 
-        // Atualiza a exibição do ano no toggle (para o nome do filho)
         const displayYearForToggle = selectedFilhoContent.querySelector('.display-year-for-toggle');
         if(displayYearForToggle) displayYearForToggle.textContent = currentYearToDisplay;
+        const displayNameForToggle = selectedFilhoContent.querySelector('.display-name-for-toggle');
+        if(displayNameForToggle) displayNameForToggle.textContent = filhosDoUsuario[currentFilhoIndex].nome;
     }
 
-    // --- Adiciona Event Listeners para o conteúdo de um filho específico ---
     function addFilhoContentEventListeners(filhoContentDiv) {
         filhoContentDiv.querySelectorAll('.toggle-meses-btn').forEach(button => {
             button.removeEventListener('click', toggleMeses);
@@ -440,8 +413,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- Handlers de Ações Globalizadas ---
-
     async function handleYearNavigation(e) {
         const filhoIndex = parseInt(e.currentTarget.dataset.filhoIndex);
         const filhoAtual = filhosDoUsuario[filhoIndex];
@@ -461,6 +432,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (enableYearCheckbox) {
             enableYearCheckbox.checked = filhoAtual.anosCalculoHabilitados.includes(yearInView);
             enableYearCheckbox.closest('label').querySelector('.display-year-for-toggle').textContent = yearInView;
+            enableYearCheckbox.closest('label').querySelector('.display-name-for-toggle').textContent = filhoAtual.nome;
         }
 
         const toggleButton = filhoContentDiv.querySelector('.toggle-meses-btn');
@@ -483,7 +455,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!filho.anosCalculoHabilitados.includes(anoParaHabilitar)) {
                     filho.anosCalculoHabilitados.push(anoParaHabilitar);
                     filho.anosCalculoHabilitados.sort((a, b) => a - b);
-                    await salvarFilhoNoFirestore(filho); // Salvar no Firestore
+                    await salvarFilhoNoFirestore(filho);
                     atualizarMontanteDevedorDisplay(filhoIndex);
                 }
             } else {
@@ -495,7 +467,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const index = filho.anosCalculoHabilitados.indexOf(anoParaHabilitar);
                 if (index > -1) {
                     filho.anosCalculoHabilitados.splice(index, 1);
-                    await salvarFilhoNoFirestore(filho); // Salvar no Firestore
+                    await salvarFilhoNoFirestore(filho);
                     atualizarMontanteDevedorDisplay(filhoIndex);
                 }
             } else {
@@ -505,7 +477,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function atualizarMontanteDevedorDisplay(filhoIndex) {
-        const filho = filhosDoUsuario[filhoIndex]; // Pega o filho do array global atualizado
+        const filho = filhosDoUsuario[filhoIndex];
         const { totalDevido, status } = calcularMontanteDevido(filho);
         const filhoContentDiv = document.getElementById(`filho-${filhoIndex}-content`);
         const montanteDevedorElem = filhoContentDiv.querySelector('.montante-devedor');
@@ -527,7 +499,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function openModal(filhoIndexParaModal, mesIdx, anoPagamento, pagamentoIdx = -1) {
         currentFilhoIndex = parseInt(filhoIndexParaModal);
-        currentFilhoDocId = filhosDoUsuario[currentFilhoIndex].id; // Atualiza o ID do documento
+        currentFilhoDocId = filhosDoUsuario[currentFilhoIndex].id;
         currentMesIndex = parseInt(mesIdx);
         currentYearToDisplay = parseInt(anoPagamento);
         currentPagamentoIndex = parseInt(pagamentoIdx);
@@ -551,7 +523,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function closeModal() {
         pagamentoModal.style.display = 'none';
         currentFilhoIndex = -1;
-        currentFilhoDocId = null; // Limpa o ID do documento
+        currentFilhoDocId = null;
         currentMesIndex = -1;
         currentPagamentoIndex = -1;
     }
@@ -597,7 +569,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
     }
 
-    // --- Handlers de Ações (disparados pelos botões dentro das abas) ---
     function adicionarPagamentoHandler(e) {
         const filhoIndex = e.currentTarget.dataset.filhoIndex;
         const mesIndex = e.currentTarget.dataset.mesIndex;
@@ -622,12 +593,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (confirm("Tem certeza que deseja excluir este pagamento?")) {
             const filho = filhosDoUsuario[filhoIndex];
             
-            // Remove o pagamento do array local
             filho.pagamentos[anoPagamento][mesIndex].splice(pagamentoIndex, 1);
             
-            await salvarFilhoNoFirestore(filho); // Salva a alteração no Firestore
+            await salvarFilhoNoFirestore(filho);
 
-            // Re-renderiza o conteúdo da aba do filho atual
             const filhoContentDiv = document.getElementById(`filho-${filhoIndex}-content`);
             const yearInView = parseInt(filhoContentDiv.querySelector('.current-year').textContent.replace('Ano: ', ''));
             renderizarMesesParaFilho(filho, filhoContentDiv, yearInView, filhoIndex);
@@ -637,7 +606,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // --- Submissão do Formulário do Modal ---
     pagamentoForm.addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -657,9 +625,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const filho = filhosDoUsuario[currentFilhoIndex]; // Filho atualmente selecionado
+        const filho = filhosDoUsuario[currentFilhoIndex];
 
-        // Garante que a estrutura de pagamentos para o ano e mês exista
         if (!filho.pagamentos[currentYearToDisplay]) {
             filho.pagamentos[currentYearToDisplay] = Array(12).fill().map(() => []);
         }
@@ -668,14 +635,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (currentPagamentoIndex !== -1) {
-            // Edita pagamento existente
             filho.pagamentos[currentYearToDisplay][currentMesIndex][currentPagamentoIndex] = {
                 valor: valor,
                 data: data
             };
             alert("Pagamento atualizado com sucesso!");
         } else {
-            // Adiciona novo pagamento
             filho.pagamentos[currentYearToDisplay][currentMesIndex].push({
                 valor: valor,
                 data: data
@@ -683,9 +648,8 @@ document.addEventListener("DOMContentLoaded", function () {
             alert(`Pagamento de R$ ${valor.toFixed(2)} em ${data} adicionado.`);
         }
 
-        await salvarFilhoNoFirestore(filho); // Salva o filho com os pagamentos atualizados no Firestore
+        await salvarFilhoNoFirestore(filho);
 
-        // Re-renderiza o conteúdo da aba do filho atual
         const filhoContentDiv = document.getElementById(`filho-${currentFilhoIndex}-content`);
         const yearInView = parseInt(filhoContentDiv.querySelector('.current-year').textContent.replace('Ano: ', ''));
         renderizarMesesParaFilho(filho, filhoContentDiv, yearInView, currentFilhoIndex);
@@ -694,12 +658,10 @@ document.addEventListener("DOMContentLoaded", function () {
         closeModal();
     });
 
-    // Inicializa a renderização completa quando a autenticação estiver pronta
     auth.onAuthStateChanged((user) => {
         if (user) {
             renderizarGestaoCompleta();
         } else {
-            // Redireciona para o login se não houver usuário logado
             window.location.href = "index.html";
         }
     });
