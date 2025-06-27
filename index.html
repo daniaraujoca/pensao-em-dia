@@ -31,6 +31,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; // NOVO: Firestore SDK
         
         const firebaseConfig = {
           apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
@@ -44,6 +45,7 @@
 
         const app = initializeApp(firebaseConfig);
         window.auth = getAuth(app); 
+        window.db = getFirestore(app); // NOVO: Inicializa o Firestore e o torna global
 
         if ('serviceWorker' in navigator) {
           window.addEventListener('load', function() {
