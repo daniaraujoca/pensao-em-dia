@@ -11,9 +11,9 @@
     <header class="menu-superior">
         <h1>Pensão em Dia</h1>
         <nav class="abas-navegacao">
-            <a href="cadastrofilho.html" class="aba">Cadastro de Filhos</a>
-            <a href="gestao.html" class="aba">Gestão de Pensão</a>
-            <a href="dicas.html" class="aba">Dicas</a>
+            <a href="./cadastrofilho.html" class="aba">Cadastro de Filhos</a>
+            <a href="./gestao.html" class="aba">Gestão de Pensão</a>
+            <a href="./dicas.html" class="aba">Dicas</a>
         </nav>
         <span id="nomeUsuarioLogado" class="bem-vindo-usuario"></span>
         <button id="logoutBtn" class="logout-btn">Sair</button>
@@ -24,13 +24,13 @@
 
         <div class="tabs-container">
             <div id="filhoTabs" class="tabs-header">
-                </div>
+            </div>
             <div id="filhosContent" class="tabs-content">
-                </div>
+            </div>
         </div>
 
         <div id="filhosContainer" style="display: none;">
-            </div>
+        </div>
 
         <div id="pagamentoModal" class="modal">
             <div class="modal-content">
@@ -51,8 +51,24 @@
         </div>
     </div>
 
-    <script src="common.js"></script> 
-    <script src="script.js"></script>
-    <script src="gestao.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
+          authDomain: "pensaoemdiaapp.firebaseapp.com",
+          projectId: "pensaoemdiaapp",
+          storageBucket: "pensaoemdiaapp.firebasestorage.app",
+          messagingSenderId: "322478168070",
+          appId: "1:322478168070:web:494318199ac307c7868b87",
+          measurementId: "G-WZ5ZGMWJJH"
+        };
+        const app = initializeApp(firebaseConfig);
+        window.auth = getAuth(app); 
+    </script>
+    
+    <script src="./common.js" type="module"></script>
+    <script src="./script.js"></script> <script src="./gestao.js"></script>
 </body>
 </html>
