@@ -29,27 +29,13 @@
         <p><a href="./recuperar-senha.html">Esqueceu sua senha?</a></p>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; 
-        
-        const firebaseConfig = {
-          apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
-          authDomain: "pensaoemdiaapp.firebaseapp.com",
-          projectId: "pensaoemdiaapp",
-          storageBucket: "pensaoemdiaapp.firebasestorage.app",
-          messagingSenderId: "322478168070",
-          appId: "1:322478168070:web:494318199ac307c7868b87",
-          measurementId: "G-WZ5ZGMWJJH"
-        };
-        const app = initializeApp(firebaseConfig);
-        window.auth = getAuth(app); 
-        window.db = getFirestore(app); 
-    </script>
-    <script src="./login.js" type="module"></script>
+    <!-- common.js inicializa o Firebase e exporta auth/db -->
+    <script type="module" src="./common.js"></script>
+    <!-- login.js importa auth/db de common.js -->
+    <script type="module" src="./login.js"></script>
+    
     <script>
-        // Registrar Service Worker
+        // Registrar Service Worker (mantido como está)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
