@@ -1,37 +1,38 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pensão em Dia - Login</title>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="manifest" href="./manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pensão em Dia</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
+    <header class="menu-superior">
+        <h1>Pensão em Dia</h1>
+    </header>
+
+    <div class="container">
+        <h1>Login</h1>
         <form id="loginForm">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required />
-
-            <label for="password">Senha:</label>
-            <input type="password" id="password" name="password" required />
-
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" required>
+            </div>
             <button type="submit">Entrar</button>
         </form>
-        <div class="link-cadastro">
-            <p>Não tem uma conta? <a href="./cadastro.html">Cadastre-se aqui</a></p>
-        </div>
-        <div class="link-recuperar-senha">
-            <p><a href="./recuperar-senha.html">Esqueceu sua senha?</a></p>
-        </div>
-        <div id="feedbackMessage" class="feedback-message" style="display: none;"></div>
+        <p id="feedbackLogin" class="feedback-message"></p>
+        <p>Não tem uma conta? <a href="./cadastro.html">Cadastre-se aqui</a></p>
+        <p><a href="./recuperar-senha.html">Esqueceu sua senha?</a></p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; // NOVO: Firestore SDK
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; 
         
         const firebaseConfig = {
           apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
@@ -42,22 +43,24 @@
           appId: "1:322478168070:web:494318199ac307c7868b87",
           measurementId: "G-WZ5ZGMWJJH"
         };
-
         const app = initializeApp(firebaseConfig);
         window.auth = getAuth(app); 
-        window.db = getFirestore(app); // NOVO: Inicializa o Firestore e o torna global
-
+        window.db = getFirestore(app); 
+    </script>
+    <script src="./login.js" type="module"></script>
+    <script>
+        // Registrar Service Worker
         if ('serviceWorker' in navigator) {
-          window.addEventListener('load', function() {
-            navigator.serviceWorker.register('./service-worker.js').then(function(registration) {
-              console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }, function(err) {
-              console.log('ServiceWorker registration failed: ', err);
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch(error => {
+                        console.error('Falha no registro do Service Worker:', error);
+                    });
             });
-          });
         }
     </script>
-    
-    <script src="./login.js" type="module"></script> 
 </body>
 </html>
