@@ -1,67 +1,39 @@
-// cadastrofilho.js
-import { auth, db } from "./common.js";
-import { collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-import { v4 as uuidv4 } from 'https://jspm.dev/uuid'; // Importa a função uuidv4 para gerar IDs únicos
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pensão em Dia - Cadastrar Filho</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="menu-superior">
+        <span id="usuarioLogadoNome"></span>
+        <button id="logoutBtn" class="btn-logout">Sair</button>
+    </div>
 
-// Obtenção dos elementos do DOM do cadastrofilho.html
-const cadastroFilhoForm = document.getElementById("cadastroFilhoForm");
-const nomeFilhoInput = document.getElementById("nomeFilho");
-const dataNascimentoInput = document.getElementById("dataNascimento");
-const valorMensalInput = document.getElementById("valorMensal");
-const diaVencimentoInput = document.getElementById("diaVencimento");
-const feedbackCadastroFilho = document.getElementById("feedbackCadastroFilho");
+    <div class="container">
+        <h2>Cadastrar Novo Filho</h2>
+        <form id="cadastroFilhoForm">
+            <label for="nomeFilho">Nome Completo:</label>
+            <input type="text" id="nomeFilho" required />
 
-// Event Listener para o formulário de cadastro de filho
-document.addEventListener("DOMContentLoaded", () => {
-    if (cadastroFilhoForm) {
-        cadastroFilhoForm.addEventListener("submit", handleCadastroFilhoFormSubmit);
-    }
-});
+            <label for="dataNascimento">Data de Nascimento:</label>
+            <input type="date" id="dataNascimento" required />
 
-async function handleCadastroFilhoFormSubmit(e) {
-    e.preventDefault();
+            <label for="pensaoMensal">Pensão Mensal (R$):</label>
+            <input type="number" id="pensaoMensal" step="0.01" required />
 
-    if (!auth.currentUser) {
-        feedbackCadastroFilho.textContent = "Usuário não autenticado. Por favor, faça login.";
-        feedbackCadastroFilho.style.display = "block";
-        feedbackCadastroFilho.style.backgroundColor = "#ffdddd";
-        console.error("Usuário não autenticado. Não é possível cadastrar filho.");
-        window.location.href = "index.html"; // Redireciona para login
-        return;
-    }
+            <label for="observacoes">Observações (Opcional):</label>
+            <textarea id="observacoes" rows="4"></textarea>
 
-    const userId = auth.currentUser.uid;
-    const novoFilhoId = uuidv4(); // Gera um ID único para o novo filho
+            <button type="submit">Cadastrar Filho</button>
+            <a href="gestao.html" class="btn-secundario">Voltar</a>
+        </form>
+        <div id="feedbackMessage" class="feedback-message" style="display: none;"></div>
+    </div>
 
-    const novoFilho = {
-        id: novoFilhoId, // O ID é parte dos dados do documento
-        nome: nomeFilhoInput.value,
-        dataNascimento: dataNascimentoInput.value, // Formato YYYY-MM-DD
-        valorMensal: parseFloat(valorMensalInput.value),
-        diaVencimento: parseInt(diaVencimentoInput.value),
-        pagamentos: {}, // Inicializa pagamentos como um objeto vazio
-        anosCalculoHabilitados: [new Date().getFullYear()] // Habilita o ano atual por padrão
-    };
-
-    const filhoDocRef = doc(db, "users", userId, "filhos", novoFilho.id);
-
-    try {
-        await setDoc(filhoDocRef, novoFilho);
-        console.log("Filho cadastrado com sucesso:", novoFilho.nome);
-        feedbackCadastroFilho.textContent = `Filho(a) ${novoFilho.nome} cadastrado(a) com sucesso!`;
-        feedbackCadastroFilho.style.display = "block";
-        feedbackCadastroFilho.style.backgroundColor = "#d4edda"; // Verde claro
-        cadastroFilhoForm.reset(); // Limpa o formulário
-        
-        // Opcional: Redirecionar para a página de gestão após o cadastro
-        // setTimeout(() => {
-        //     window.location.href = "gestao.html";
-        // }, 2000);
-
-    } catch (e) {
-        console.error("Erro ao cadastrar filho no Firestore: ", e);
-        feedbackCadastroFilho.textContent = "Erro ao cadastrar filho. Tente novamente.";
-        feedbackCadastroFilho.style.display = "block";
-        feedbackCadastroFilho.style.backgroundColor = "#ffdddd"; // Vermelho claro
-    }
-}
+    <script type="module" src="common.js"></script>
+    <script type="module" src="cadastrofilho.js"></script>
+</body>
+</html>
