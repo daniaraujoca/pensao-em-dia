@@ -1,7 +1,10 @@
+// Importa as funções específicas do Firebase Auth para cadastro e atualização de perfil
+import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
 document.addEventListener("DOMContentLoaded", function () {
     const cadastroForm = document.getElementById("cadastroForm");
 
-    // Certifica-se de que o objeto 'auth' do Firebase está disponível globalmente.
+    // Obtém a instância de autenticação globalmente
     const auth = window.auth;
 
     if (cadastroForm) {
@@ -24,31 +27,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // A lógica de verificação de email já existente e criação de usuário
-            // será feita pelo Firebase Authentication.
-            auth.createUserWithEmailAndPassword(email, senha)
+            // Usa a função importada para criar o usuário
+            createUserWithEmailAndPassword(auth, email, senha) // Note: auth é o primeiro argumento
                 .then((userCredential) => {
-                    // Usuário criado com sucesso no Firebase Authentication
                     const user = userCredential.user;
 
-                    // O Firebase Authentication não armazena automaticamente "nome" e "sobrenome".
-                    // Para o seu "Bem-vindo, [Nome]", vamos tentar atualizar o displayName.
-                    // Isso é opcional, mas ajuda a manter o nome simples no usuário do Firebase.
-                    return user.updateProfile({
+                    // Usa a função importada para atualizar o perfil do usuário
+                    return updateProfile(user, { // Note: user é o primeiro argumento
                         displayName: `${nome} ${sobrenome}`
                     })
                     .then(() => {
-                        // Salva o nome e o e-mail no localStorage para uso imediato no app
-                        // (o email é sempre seguro para usar como identificador).
                         localStorage.setItem("usuarioLogadoEmail", user.email);
-                        localStorage.setItem("usuarioLogadoNome", user.displayName); // Usando o display name atualizado
+                        localStorage.setItem("usuarioLogadoNome", user.displayName);
                         
                         alert("Cadastro realizado com sucesso! Faça login.");
-                        window.location.href = "index.html"; // Redireciona para a página de login
+                        window.location.href = "./index.html"; // Caminho corrigido
                     });
                 })
                 .catch((error) => {
-                    // Ocorreu um erro durante o cadastro
                     let errorMessage = "Erro ao cadastrar. Tente novamente.";
 
                     switch (error.code) {
