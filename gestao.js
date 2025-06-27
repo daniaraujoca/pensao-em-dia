@@ -1,5 +1,5 @@
-// Não há "import" de Firebase aqui, pois gestao.js NÃO é um módulo neste setup.
-// Ele espera que window.auth e window.db já estejam definidos globalmente pelo script no HTML.
+import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
 document.addEventListener("DOMContentLoaded", async function () {
     // Acessa window.auth e window.db que são definidos no HTML
@@ -7,8 +7,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     const db = window.db;
 
     // Elementos do seu HTML (usando IDs que já existiam ou inferindo pela estrutura)
-    const filhoTabsContainer = document.getElementById("filhoTabs"); // Este ID você já tem
-    const filhosContentContainer = document.getElementById("filhosContent"); // Este ID você já tem
+    const filhoTabsContainer = document.getElementById("filhoTabs");
+    const filhosContentContainer = document.getElementById("filhosContent");
 
     // Modal de Pagamento (os IDs do modal que você já tem)
     const pagamentoModal = document.getElementById("pagamentoModal");
@@ -19,12 +19,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     let currentFilhoId = null; // Para saber qual filho está sendo exibido/pago
     let activeFilhoData = null; // Armazena os dados do filho ativo
-    let currentDisplayYear = new Date().getFullYear(); // Ano exibido atualmente
+    let currentDisplayYear = new Date().getFullYear(); // Ano exibido atualmente (será 2025 atualmente)
 
-    // Redireciona se não estiver logado
-    // Este listener é importante para garantir que a página só seja acessada por usuários logados
-    // e para iniciar o carregamento dos filhos
-    auth.onAuthStateChanged(user => {
+    // Redireciona se não estiver logado e inicia o carregamento dos filhos
+    onAuthStateChanged(auth, user => {
         if (!user) {
             window.location.href = "./index.html";
         } else {
@@ -51,12 +49,12 @@ document.addEventListener("DOMContentLoaded", async function () {
         filhoTabsContainer.innerHTML = ""; // Limpa as abas
         filhosContentContainer.innerHTML = ""; // Limpa o conteúdo principal
         try {
-            // Usamos a coleção e query diretamente, sem "import" porque o db já está em window.db
-            const q = firebase.firestore.query(firebase.firestore.collection(db, "filhos"), firebase.firestore.where("userId", "==", userId));
-            const querySnapshot = await firebase.firestore.getDocs(q);
+            // Usando as funções importadas diretamente
+            const q = query(collection(db, "filhos"), where("userId", "==", userId));
+            const querySnapshot = await getDocs(q);
             const filhos = [];
-            querySnapshot.forEach((doc) => {
-                filhos.push({ id: doc.id, ...doc.data() });
+            querySnapshot.forEach((documento) => {
+                filhos.push({ id: documento.id, ...documento.data() });
             });
 
             if (filhos.length === 0) {
@@ -66,9 +64,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             filhos.forEach((filho, index) => {
                 const tab = document.createElement("button");
-                tab.classList.add("filho-tab"); // Classe existente que você já tem
+                tab.classList.add("filho-tab");
                 tab.textContent = filho.nome;
-                tab.setAttribute('data-filho-id', filho.id); // Usamos um data attribute para guardar o ID do Firestore
+                tab.setAttribute('data-filho-id', filho.id);
                 tab.addEventListener("click", () => showFilhoDetails(filho.id, filhos));
                 filhoTabsContainer.appendChild(tab);
 
@@ -95,10 +93,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         currentFilhoId = filhoId;
-
-        // **AGORA VAMOS CRIAR O CONTEÚDO DINAMICAMENTE NO SEU `filhosContent`**
-        // Isso é crucial para não interferir no seu layout original.
-        // O JS vai montar o HTML da parte principal.
 
         filhosContentContainer.innerHTML = `
             <div class="filho-info">
@@ -133,9 +127,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 </div>
         `;
         
-        // Agora que o HTML foi injetado, encontramos os novos elementos para adicionar listeners
         addEventListenersToDynamicContent();
-
         displayMonthsForYear(activeFilhoData, currentDisplayYear);
     }
 
@@ -168,13 +160,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (prevYearBtn) {
             prevYearBtn.addEventListener('click', () => {
                 currentDisplayYear--;
-                showFilhoDetails(currentFilhoId, [activeFilhoData]); // Recarrega os detalhes para atualizar o ano
+                // Recarrega os detalhes para atualizar o ano. Passamos activeFilhoData dentro de um array
+                // porque showFilhoDetails espera um array de filhos como segundo argumento.
+                // Isso é um ajuste para o fluxo da função.
+                showFilhoDetails(currentFilhoId, [activeFilhoData]); 
             });
         }
         if (nextYearBtn) {
             nextYearBtn.addEventListener('click', () => {
                 currentDisplayYear++;
-                showFilhoDetails(currentFilhoId, [activeFilhoData]); // Recarrega os detalhes para atualizar o ano
+                showFilhoDetails(currentFilhoId, [activeFilhoData]);
             });
         }
         if (enableYearCheckbox) {
@@ -184,9 +179,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
         if (hideMonthsBtn) {
             hideMonthsBtn.addEventListener('click', () => {
-                const mesCardsContainer = filhosContentContainer.querySelector(".mes-cards-container");
+                const mesCardsContainer = hijosContentContainer.querySelector(".mes-cards-container");
                 if (mesCardsContainer) {
-                    mesCardsContainer.classList.toggle('hidden'); // Alterna uma classe 'hidden' no CSS
+                    mesCardsContainer.classList.toggle('hidden');
                     hideMonthsBtn.textContent = mesCardsContainer.classList.contains('hidden') ? 
                         `Mostrar Meses (${currentDisplayYear})` : `Esconder Meses (${currentDisplayYear})`;
                 }
@@ -216,27 +211,21 @@ document.addEventListener("DOMContentLoaded", async function () {
         let totalDevidoAno = 0;
         const enableYearCheckbox = filhosContentContainer.querySelector(".enable-year-checkbox");
 
-        // Obter o mês e dia atuais para verificar se o mês já venceu
         const hoje = new Date();
         const anoAtual = hoje.getFullYear();
-        const mesAtual = hoje.getMonth() + 1; // Mês atual (1-12)
+        const mesAtual = hoje.getMonth() + 1;
         const diaAtual = hoje.getDate();
 
 
         if (!enableYearCheckbox || enableYearCheckbox.checked) {
             for (let m = 1; m <= 12; m++) {
-                // Se o ano atual é menor que o ano exibido (ex: ano atual 2024, ano exibido 2023), 
-                // todos os meses do ano exibido já venceram
                 if (ano < anoAtual) {
                     totalDevidoAno += filho.valorMensal;
                 } 
-                // Se o ano exibido é o ano atual
                 else if (ano === anoAtual) {
-                    // Se o mês exibido já passou no ano atual
                     if (m < mesAtual) {
                         totalDevidoAno += filho.valorMensal;
                     } 
-                    // Se o mês exibido é o mês atual e o dia de vencimento já passou
                     else if (m === mesAtual && diaAtual >= filho.diaVencimento) {
                         totalDevidoAno += filho.valorMensal;
                     }
@@ -292,7 +281,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                 });
             }
             
-            // Determina a classe do card baseada no saldo do mês
             const cardClass = saldoMes >= 0 ? 'mes-pago' : 'mes-devedor'; 
 
             const cardHTML = `
@@ -311,14 +299,12 @@ document.addEventListener("DOMContentLoaded", async function () {
             mesCardsContainer.insertAdjacentHTML('beforeend', cardHTML);
         });
 
-        // Adiciona event listeners aos botões de adicionar pagamento em cada card
         mesCardsContainer.querySelectorAll(".add-payment-month-btn").forEach(btn => {
             btn.addEventListener("click", (e) => {
                 currentFilhoId = e.target.dataset.filhoId;
                 const mesDoCard = e.target.dataset.mes;
                 const anoDoCard = e.target.dataset.ano;
                 
-                // Preenche a data do modal com o dia de vencimento do filho e o mês/ano do card
                 const dataPreenchida = `${String(activeFilhoData.diaVencimento).padStart(2, '0')}/${String(mesDoCard).padStart(2, '0')}/${anoDoCard}`;
                 modalData.value = dataPreenchida;
 
@@ -329,7 +315,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
         });
 
-        // Adiciona event listeners aos ícones de excluir pagamento
         mesCardsContainer.querySelectorAll(".delete-payment-month-icon").forEach(icon => {
             icon.addEventListener("click", (e) => {
                 const idFilho = e.target.dataset.filhoId;
@@ -340,7 +325,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
         });
 
-        // Atualiza os textos dos elementos de navegação de ano e checkbox
         const currentYearSpan = filhosContentContainer.querySelector(".current-year");
         const enableYearText = filhosContentContainer.querySelector(".enable-year-text");
         const enableFilhoNameForCheckbox = filhosContentContainer.querySelector(".enable-filho-name-for-checkbox");
@@ -356,7 +340,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
 
-        // Recalcula e exibe o saldo total após renderizar os meses
         calcularEExibirSaldo(filho, ano);
     }
 
@@ -399,18 +382,18 @@ document.addEventListener("DOMContentLoaded", async function () {
             };
 
             try {
-                // Usamos as funções do Firebase via window.db
-                const filhoRef = firebase.firestore.doc(db, "filhos", currentFilhoId);
-                await firebase.firestore.updateDoc(filhoRef, {
-                    pagamentos: firebase.firestore.arrayUnion(novoPagamento)
+                // Usamos as funções importadas diretamente
+                const filhoRef = doc(db, "filhos", currentFilhoId);
+                await updateDoc(filhoRef, {
+                    pagamentos: arrayUnion(novoPagamento)
                 });
 
                 alert("Pagamento registrado com sucesso!");
                 pagamentoModal.style.display = "none";
                 
                 // Recarrega os dados do filho específico e atualiza a interface
-                const q = firebase.firestore.query(firebase.firestore.collection(db, "filhos"), firebase.firestore.where("userId", "==", auth.currentUser.uid), firebase.firestore.where("__name__", "==", currentFilhoId));
-                const updatedFilhoSnap = await firebase.firestore.getDocs(q);
+                const q = query(collection(db, "filhos"), where("userId", "==", auth.currentUser.uid), where("__name__", "==", currentFilhoId));
+                const updatedFilhoSnap = await getDocs(q);
                 if (!updatedFilhoSnap.empty) {
                     activeFilhoData = { id: updatedFilhoSnap.docs[0].id, ...updatedFilhoSnap.docs[0].data() };
                     displayMonthsForYear(activeFilhoData, currentDisplayYear); // Renderiza meses com dados atualizados
@@ -427,9 +410,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Excluir pagamento
     async function deletePagamento(filhoId, timestampPagamento) {
         try {
-            const filhoRef = firebase.firestore.doc(db, "filhos", filhoId);
-            const q = firebase.firestore.query(firebase.firestore.collection(db, "filhos"), firebase.firestore.where("userId", "==", auth.currentUser.uid), firebase.firestore.where("__name__", "==", filhoId));
-            const filhoDocSnap = await firebase.firestore.getDocs(q);
+            const filhoRef = doc(db, "filhos", filhoId);
+            const q = query(collection(db, "filhos"), where("userId", "==", auth.currentUser.uid), where("__name__", "==", filhoId));
+            const filhoDocSnap = await getDocs(q);
             
             if (filhoDocSnap.empty) {
                 console.error("Filho não encontrado para exclusão de pagamento.");
@@ -441,13 +424,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             const pagamentoParaRemover = pagamentosAtuais.find(p => p.timestamp === timestampPagamento);
 
             if (pagamentoParaRemover) {
-                await firebase.firestore.updateDoc(filhoRef, {
-                    pagamentos: firebase.firestore.arrayRemove(pagamentoParaRemover)
+                await updateDoc(filhoRef, {
+                    pagamentos: arrayRemove(pagamentoParaRemover)
                 });
                 alert("Pagamento excluído com sucesso!");
                 
-                const updatedFilhoSnap = await firebase.firestore.query(firebase.firestore.collection(db, "filhos"), firebase.firestore.where("userId", "==", auth.currentUser.uid), firebase.firestore.where("__name__", "==", filhoId));
-                const updatedFilhoDocs = await firebase.firestore.getDocs(updatedFilhoSnap);
+                const updatedFilhoSnap = query(collection(db, "filhos"), where("userId", "==", auth.currentUser.uid), where("__name__", "==", filhoId));
+                const updatedFilhoDocs = await getDocs(updatedFilhoSnap);
                 activeFilhoData = { id: updatedFilhoDocs.docs[0].id, ...updatedFilhoDocs.docs[0].data() };
                 displayMonthsForYear(activeFilhoData, currentDisplayYear);
                 calcularEExibirSaldo(activeFilhoData, currentDisplayYear);
@@ -461,7 +444,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Excluir filho
     async function deleteFilho(filhoId) {
         try {
-            await firebase.firestore.deleteDoc(firebase.firestore.doc(db, "filhos", filhoId));
+            await deleteDoc(doc(db, "filhos", filhoId));
             alert("Filho excluído com sucesso!");
             loadFilhos(auth.currentUser.uid);
         } catch (error) {
