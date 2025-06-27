@@ -1,79 +1,86 @@
-// cadastro.js
-import { auth, db } from "./common.js"; // Importa 'auth' e 'db' de common.js
-import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-document.addEventListener("DOMContentLoaded", function() {
-    const cadastroForm = document.getElementById("cadastroForm");
-    const cadastroNomeInput = document.getElementById("cadastroNome"); // Novo campo de nome
-    const cadastroEmailInput = document.getElementById("cadastroEmail");
-    const cadastroPasswordInput = document.getElementById("cadastroPassword");
-    const confirmPasswordInput = document.getElementById("confirmPassword");
-    const feedbackCadastro = document.getElementById("feedbackCadastro");
+// Obtém as instâncias globais de autenticação e Firestore do Firebase.
+// Estas instâncias são definidas em common.js e expostas globalmente.
+const auth = window.auth;
+const db = window.db;
 
-    if (cadastroForm) {
-        cadastroForm.addEventListener("submit", async function(e) {
-            e.preventDefault();
+const cadastroForm = document.getElementById('cadastroForm');
+const nomeInput = document.getElementById('nome');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const confirmPasswordInput = document.getElementById('confirmPassword');
+const feedbackMessage = document.getElementById('feedbackMessage');
 
-            feedbackCadastro.textContent = ""; // Limpa a mensagem
-            feedbackCadastro.classList.remove("success", "error");
-            feedbackCadastro.style.display = "none";
+cadastroForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); // Impede o recarregamento da página
 
-            const nome = cadastroNomeInput.value.trim(); // Pega o nome e remove espaços extras
-            const email = cadastroEmailInput.value;
-            const password = cadastroPasswordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
+    const nome = nomeInput.value;
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
 
-            if (nome === "") {
-                feedbackCadastro.textContent = "Por favor, insira seu nome completo.";
-                feedbackCadastro.classList.add("error");
-                feedbackCadastro.style.display = "block";
-                return;
-            }
+    feedbackMessage.style.display = 'none'; // Esconde mensagens anteriores
+    feedbackMessage.textContent = ''; // Limpa o texto da mensagem
 
-            if (password !== confirmPassword) {
-                feedbackCadastro.textContent = "As senhas não coincidem.";
-                feedbackCadastro.classList.add("error");
-                feedbackCadastro.style.display = "block";
-                return;
-            }
+    if (password !== confirmPassword) {
+        feedbackMessage.textContent = 'As senhas não coincidem.';
+        feedbackMessage.style.backgroundColor = '#f44336'; // Vermelho para erro
+        feedbackMessage.style.display = 'block';
+        return;
+    }
 
-            try {
-                // 1. Cria o usuário no Firebase Authentication
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
+    try {
+        // 1. Criar o usuário com email e senha
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-                // 2. Salva o perfil do usuário no Firestore
-                // Criar um documento na coleção 'users' com o UID do usuário como ID do documento
-                // E dentro desse documento, criar uma subcoleção 'profile' com um documento 'data'
-                const userProfileRef = doc(db, "users", user.uid, "profile", "data");
-                await setDoc(userProfileRef, {
-                    nome: nome,
-                    email: email,
-                    createdAt: new Date() // Opcional: registrar a data de criação
-                });
-
-                feedbackCadastro.textContent = "Cadastro bem-sucedido! Redirecionando...";
-                feedbackCadastro.classList.add("success");
-                feedbackCadastro.style.display = "block";
-                
-                // O redirecionamento é tratado pelo common.js via onAuthStateChanged
-                // Não é necessário setTimeout aqui
-                // window.location.href = "./index.html"; // Comentado
-            } catch (error) {
-                let errorMessage = "Erro no cadastro. Tente novamente.";
-                if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = "Este email já está em uso.";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = "Formato de email inválido.";
-                } else if (error.code === 'auth/weak-password') {
-                    errorMessage = "A senha é muito fraca (mínimo de 6 caracteres).";
-                }
-                console.error("Erro de cadastro:", error);
-                feedbackCadastro.textContent = errorMessage;
-                feedbackCadastro.classList.add("error");
-                feedbackCadastro.style.display = "block";
-            }
+        // 2. Atualizar o perfil do usuário com o nome
+        await updateProfile(user, {
+            displayName: nome
         });
+
+        // 3. Salvar dados adicionais do usuário no Firestore
+        await setDoc(doc(db, "users", user.uid), {
+            nome: nome,
+            email: email,
+            // Você pode adicionar outros campos aqui se necessário
+        });
+
+        // Armazena informações básicas do usuário no localStorage
+        localStorage.setItem("usuarioLogadoEmail", user.email);
+        localStorage.setItem("usuarioLogadoNome", nome);
+
+        feedbackMessage.textContent = 'Cadastro realizado com sucesso! Redirecionando...';
+        feedbackMessage.style.backgroundColor = '#4CAF50'; // Verde para sucesso
+        feedbackMessage.style.display = 'block';
+
+        setTimeout(() => {
+            window.location.href = 'gestao.html'; // Redireciona para a página de gestão
+        }, 1000); // Redireciona após 1 segundo
+
+    } catch (error) {
+        let message = 'Erro desconhecido ao cadastrar. Tente novamente.';
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                message = 'Este email já está em uso.';
+                break;
+            case 'auth/invalid-email':
+                message = 'Formato de email inválido.';
+                break;
+            case 'auth/weak-password':
+                message = 'A senha deve ter pelo menos 6 caracteres.';
+                break;
+            case 'auth/operation-not-allowed':
+                message = 'Criação de conta por email/senha não está habilitada. Verifique as configurações do Firebase.';
+                break;
+            default:
+                console.error("Erro de cadastro:", error);
+                message = `Erro: ${error.message}`;
+        }
+        feedbackMessage.textContent = message;
+        feedbackMessage.style.backgroundColor = '#f44336'; // Vermelho para erro
+        feedbackMessage.style.display = 'block';
     }
 });
