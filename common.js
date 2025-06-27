@@ -3,7 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// Sua configuração do Firebase (substituída pelos seus dados reais)
+// Sua configuração do Firebase (substituída pelos seus dados reais da imagem)
 const firebaseConfig = {
   apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4",
   authDomain: "pensaoemdiaapp.firebaseapp.com",
