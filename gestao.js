@@ -2,26 +2,22 @@ import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, arrayRem
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
 document.addEventListener("DOMContentLoaded", async function () {
-    // Acessa window.auth e window.db que são definidos no HTML
     const auth = window.auth;
     const db = window.db;
 
-    // Elementos do seu HTML (usando IDs que já existiam ou inferindo pela estrutura)
     const filhoTabsContainer = document.getElementById("filhoTabs");
-    const filhosContentContainer = document.getElementById("filhosContent"); // Agora usaremos este como o container do conteúdo
+    const filhosContentContainer = document.getElementById("filhosContent");
 
-    // Modal de Pagamento (os IDs do modal que você já tem)
     const pagamentoModal = document.getElementById("pagamentoModal");
     const closeButton = pagamentoModal ? pagamentoModal.querySelector(".close-button") : null;
     const pagamentoForm = document.getElementById("pagamentoForm");
     const modalValor = document.getElementById("modalValor");
     const modalData = document.getElementById("modalData");
 
-    let currentFilhoId = null; // Para saber qual filho está sendo exibido/pago
-    let activeFilhoData = null; // Armazena os dados do filho ativo
-    let currentDisplayYear = new Date().getFullYear(); // Ano exibido atualmente (será 2025 atualmente)
+    let currentFilhoId = null;
+    let activeFilhoData = null;
+    let currentDisplayYear = new Date().getFullYear();
 
-    // Redireciona se não estiver logado e inicia o carregamento dos filhos
     onAuthStateChanged(auth, user => {
         if (!user) {
             window.location.href = "./index.html";
@@ -30,7 +26,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
 
-    // Event Listeners do Modal de Pagamento
     if (closeButton) {
         closeButton.addEventListener("click", () => {
             pagamentoModal.style.display = "none";
@@ -44,9 +39,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 
-    // Função para carregar filhos do Firestore e criar as abas
     async function loadFilhos(userId) {
-        filhoTabsContainer.innerHTML = ""; // Limpa as abas
+        filhoTabsContainer.innerHTML = "";
         filhosContentContainer.innerHTML = ""; // Limpa o conteúdo principal
         try {
             const q = query(collection(db, "filhos"), where("userId", "==", userId));
@@ -63,14 +57,14 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             filhos.forEach((filho, index) => {
                 const tab = document.createElement("button");
-                tab.classList.add("tab-button"); // CORRIGIDO: Agora usa a classe do CSS
+                tab.classList.add("tab-button");
                 tab.textContent = filho.nome;
                 tab.setAttribute('data-filho-id', filho.id);
                 tab.addEventListener("click", () => showFilhoDetails(filho.id, filhos));
                 filhoTabsContainer.appendChild(tab);
 
                 if (index === 0) {
-                    tab.click(); // Ativa a primeira aba por padrão
+                    tab.click();
                 }
             });
 
@@ -80,7 +74,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    // Função para exibir detalhes de um filho
     async function showFilhoDetails(filhoId, allFilhos) {
         filhoTabsContainer.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
         document.querySelector(`.tab-button[data-filho-id="${filhoId}"]`).classList.add("active");
@@ -93,7 +86,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         currentFilhoId = filhoId;
 
-        // CORRIGIDO: Usa a classe 'filho-bloco' e 'meses-grid' do CSS
         filhosContentContainer.innerHTML = `
             <div class="filho-bloco"> 
                 <h3>Filho(a): <span class="filho-nome-header">${activeFilhoData.nome}</span></h3>
@@ -116,28 +108,32 @@ document.addEventListener("DOMContentLoaded", async function () {
                 <button class="nav-btn next-year-btn">Próximo &gt;</button>
             </div>
 
-            <div class="year-options">
-                <input type="checkbox" class="enable-year-checkbox" id="enable-year-checkbox">
-                <label for="enable-year-checkbox">Habilitar <span class="enable-year-text">${currentDisplayYear}</span> para cálculo de dívida de <span class="enable-filho-name-for-checkbox">${activeFilhoData.nome}</span></label>
-                <button class="action-btn hide-months-btn">Esconder Meses (${currentDisplayYear})</button>
+            <div class="year-enable-toggle"> 
+                <label for="enable-year-checkbox">
+                    <input type="checkbox" class="enable-year-checkbox" id="enable-year-checkbox">
+                    Habilitar <span class="enable-year-text">${currentDisplayYear}</span> para cálculo de dívida de <span class="enable-filho-name-for-checkbox">${activeFilhoData.nome}</span>
+                </label>
+                <small>Apenas anos habilitados são considerados no montante devedor.</small>
             </div>
 
             <h3>Histórico de Pagamentos</h3>
-            <div class="meses-grid"> </div>
+            <button class="action-btn toggle-meses-btn">Esconder Meses (${currentDisplayYear})</button> 
+            
+            <div class="meses-grid"> 
+                </div>
         `;
         
         addEventListenersToDynamicContent();
         displayMonthsForYear(activeFilhoData, currentDisplayYear);
     }
 
-    // Função para adicionar listeners aos elementos que foram criados dinamicamente
     function addEventListenersToDynamicContent() {
         const registerPaymentBtn = filhosContentContainer.querySelector(".register-payment-btn");
         const deleteFilhoBtn = filhosContentContainer.querySelector(".delete-filho-btn");
         const prevYearBtn = filhosContentContainer.querySelector(".prev-year-btn");
         const nextYearBtn = filhosContentContainer.querySelector(".next-year-btn");
-        const enableYearCheckbox = hijosContentContainer.querySelector(".enable-year-checkbox");
-        const hideMonthsBtn = filhosContentContainer.querySelector(".hide-months-btn");
+        const enableYearCheckbox = filhosContentContainer.querySelector(".enable-year-checkbox");
+        const toggleMesesBtn = filhosContentContainer.querySelector(".toggle-meses-btn");
 
 
         if (registerPaymentBtn) {
@@ -159,35 +155,54 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (prevYearBtn) {
             prevYearBtn.addEventListener('click', () => {
                 currentDisplayYear--;
-                // Recarrega os detalhes para atualizar o ano. Passamos activeFilhoData dentro de um array
-                // porque showFilhoDetails espera um array de filhos como segundo argumento.
-                // Isso é um ajuste para o fluxo da função.
                 showFilhoDetails(currentFilhoId, [activeFilhoData]); 
             });
         }
         if (nextYearBtn) {
-            nextYearYear++;
-            showFilhoDetails(currentFilhoId, [activeFilhoData]);
+            nextYearBtn.addEventListener('click', () => {
+                currentDisplayYear++;
+                showFilhoDetails(currentFilhoId, [activeFilhoData]);
+            });
         }
         if (enableYearCheckbox) {
-            enableYearCheckbox.addEventListener('change', () => {
+            // Define o estado inicial do checkbox com base em se o ano atual está habilitado nos dados do filho
+            enableYearCheckbox.checked = activeFilhoData.anosHabilitadosCalculoDestaPagina && activeFilhoData.anosHabilitadosCalculoDestaPagina.includes(currentDisplayYear);
+            
+            enableYearCheckbox.addEventListener('change', async () => {
+                const filhoRef = doc(db, "filhos", currentFilhoId);
+                let anosHabilitados = activeFilhoData.anosHabilitadosCalculoDestaPagina || [];
+
+                if (enableYearCheckbox.checked) {
+                    if (!anosHabilitados.includes(currentDisplayYear)) {
+                        anosHabilitados.push(currentDisplayYear);
+                    }
+                } else {
+                    anosHabilitados = anosHabilitados.filter(year => year !== currentDisplayYear);
+                }
+                
+                // Atualiza o Firebase com os anos habilitados
+                await updateDoc(filhoRef, {
+                    anosHabilitadosCalculoDestaPagina: anosHabilitados
+                });
+
+                // Atualiza o activeFilhoData local para refletir a mudança
+                activeFilhoData.anosHabilitadosCalculoDestaPagina = anosHabilitados;
+                
                 calcularEExibirSaldo(activeFilhoData, currentDisplayYear);
             });
         }
-        if (hideMonthsBtn) {
-            const mesCardsContainer = filhosContentContainer.querySelector(".meses-grid"); // CORRIGIDO: Referencia a classe correta
-            if (mesCardsContainer) {
-                hideMonthsBtn.addEventListener('click', () => {
-                    mesCardsContainer.classList.toggle('hidden');
-                    hideMonthsBtn.textContent = mesCardsContainer.classList.contains('hidden') ? 
+        if (toggleMesesBtn) {
+            const mesesGridCurrentContainer = filhosContentContainer.querySelector(".meses-grid");
+            if (mesesGridCurrentContainer) {
+                toggleMesesBtn.addEventListener('click', () => {
+                    mesesGridCurrentContainer.classList.toggle('hidden');
+                    toggleMesesBtn.textContent = mesesGridCurrentContainer.classList.contains('hidden') ? 
                         `Mostrar Meses (${currentDisplayYear})` : `Esconder Meses (${currentDisplayYear})`;
                 });
             }
         }
     }
 
-
-    // Função para calcular a idade do filho
     function calcularIdade(dataNascimento) {
         const [ano, mes, dia] = dataNascimento.split('-').map(Number);
         const dataNasc = new Date(ano, mes - 1, dia);
@@ -200,7 +215,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         return idade;
     }
 
-    // Função para calcular e exibir o saldo devedor
     function calcularEExibirSaldo(filho, ano) {
         const pagamentosNoAno = (filho.pagamentos || []).filter(p => new Date(p.data).getFullYear() === ano);
         const totalPagoAno = pagamentosNoAno.reduce((sum, p) => sum + p.valor, 0);
@@ -213,8 +227,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         const mesAtual = hoje.getMonth() + 1;
         const diaAtual = hoje.getDate();
 
+        // Verifica se o ano está habilitado para cálculo (usando os dados do filho, não apenas o checkbox momentâneo)
+        const isYearEnabled = (filho.anosHabilitadosCalculoDestaPagina || []).includes(ano);
 
-        if (!enableYearCheckbox || enableYearCheckbox.checked) {
+        if (isYearEnabled) { // Só calcula se o ano estiver habilitado
             for (let m = 1; m <= 12; m++) {
                 if (ano < anoAtual) {
                     totalDevidoAno += filho.valorMensal;
@@ -240,22 +256,19 @@ document.addEventListener("DOMContentLoaded", async function () {
         const montanteDevedor = totalDevidoAno - totalPagoAno;
         if (montanteDevedorDisplay) {
             montanteDevedorDisplay.textContent = `Montante Devedor: R$ ${montanteDevedor.toFixed(2)}`;
-            // CORRIGIDO: Usando as classes do CSS para montante-devedor
-            montanteDevedorDisplay.classList.remove('verde', 'amarelo', 'vermelho'); // Limpa classes anteriores
+            montanteDevedorDisplay.classList.remove('verde', 'amarelo', 'vermelho');
             if (montanteDevedor > 0) {
                 montanteDevedorDisplay.classList.add('vermelho');
             } else if (montanteDevedor < 0) {
-                montanteDevedorDisplay.classList.add('verde'); // Se estiver negativo (pago a mais)
+                montanteDevedorDisplay.classList.add('verde'); 
             } else {
-                montanteDevedorDisplay.classList.add('verde'); // Se estiver zerado
+                montanteDevedorDisplay.classList.add('verde'); 
             }
         }
     }
 
-
-    // Renderiza os cards dos meses para o ano atual
     function displayMonthsForYear(filho, ano) {
-        const mesesGridContainer = filhosContentContainer.querySelector(".meses-grid"); // CORRIGIDO: Usa a classe do CSS
+        const mesesGridContainer = filhosContentContainer.querySelector(".meses-grid");
         if (!mesesGridContainer) return; 
 
         mesesGridContainer.innerHTML = '';
@@ -271,7 +284,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 return dataPag.getFullYear() === ano && (dataPag.getMonth() + 1) === mesNumero;
             });
 
-            let saldoMes = -filho.valorMensal; // Inicia com o valor devido do mês
+            let saldoMes = -filho.valorMensal;
             let pagamentosExibicao = '';
             if (pagamentosDoMes.length > 0) {
                 pagamentosDoMes.sort((a, b) => a.timestamp - b.timestamp).forEach(p => {
@@ -288,23 +301,25 @@ document.addEventListener("DOMContentLoaded", async function () {
                 });
             }
             
-            // CORRIGIDO: Usa as classes do CSS para a cor da caixa do mês e o nome do mês
-            let cardClass = 'nao-pago'; // Padrão
-            let mesNomeClass = 'nao-pago';
+            let cardClass = 'nao-pago';
+            let mesNomeClass = 'nao-pago-text'; // Adicionei uma classe para o texto do mês se precisar de cor diferente
             if (saldoMes >= 0) {
                 cardClass = 'pago-completo';
-                mesNomeClass = 'pago-completo';
+                mesNomeClass = 'pago-completo-text';
             } else if (saldoMes > -filho.valorMensal) {
                 cardClass = 'pago-parcial';
-                mesNomeClass = 'pago-parcial';
+                mesNomeClass = 'pago-parcial-text';
             }
 
-
             const cardHTML = `
-                <div class="mes-box ${cardClass}"> <h4 class="mes-nome ${mesNomeClass}">${nomeMes} ${ano}</h4> <p>Valor Mensal: R$ ${filho.valorMensal.toFixed(2)}</p>
+                <div class="mes-box ${cardClass}">
+                    <h4 class="mes-nome ${mesNomeClass}">${nomeMes} ${ano}</h4>
+                    <p>Valor Mensal: R$ ${filho.valorMensal.toFixed(2)}</p>
                     <p>Pagamentos:</p>
-                    <div class="pagamentos-lista">${pagamentosExibicao || 'Nenhum'}</div> <p>Saldo do Mês: R$ ${saldoMes.toFixed(2)}</p>
-                    <button class="adicionar-pagamento" data-filho-id="${filho.id}" 
+                    <div class="pagamentos-lista">${pagamentosExibicao || 'Nenhum'}</div>
+                    <p>Saldo do Mês: R$ ${saldoMes.toFixed(2)}</p>
+                    <button class="adicionar-pagamento"
+                            data-filho-id="${filho.id}" 
                             data-mes="${mesNumero}" 
                             data-ano="${ano}">Adicionar Pagamento</button>
                 </div>
@@ -318,7 +333,8 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const mesDoCard = e.target.dataset.mes;
                 const anoDoCard = e.target.dataset.ano;
                 
-                const dataPreenchida = `${String(activeFilhoData.diaVencimento).padStart(2, '0')}/${String(mesDoCard).padStart(2, '0')}/${anoDoCard}`;
+                const diaVenc = String(activeFilhoData.diaVencimento || 1).padStart(2, '0');
+                const dataPreenchida = `${diaVenc}/${String(mesDoCard).padStart(2, '0')}/${anoDoCard}`;
                 modalData.value = dataPreenchida;
 
                 if (pagamentoModal) {
@@ -328,15 +344,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
         });
 
-        mesesGridContainer.querySelectorAll(".btn-excluir-pagamento").forEach(btn => { // CORRIGIDO: Usa a classe do CSS
-            btn.addEventListener("click", (e) => {
-                const idFilho = e.target.dataset.filhoId;
-                // Procura o elemento pai <i> ou o próprio botão se for o caso
-                const targetElement = e.target.tagName === 'I' ? e.target.closest('.btn-excluir-pagamento') : e.target;
-                const timestampPagamento = parseInt(targetElement.dataset.timestamp);
+        mesesGridContainer.querySelectorAll(".btn-excluir-pagamento").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                const idFilho = e.target.dataset.filhoId || e.target.closest('.btn-excluir-pagamento').dataset.filhoId; // Para pegar do ícone
+                const timestampPagamento = parseInt(e.target.dataset.timestamp || e.target.closest('.btn-excluir-pagamento').dataset.timestamp);
 
                 if (confirm("Tem certeza que deseja excluir este pagamento?")) {
-                    deletePagamento(idFilho, timestampPagamento);
+                    await deletePagamento(idFilho, timestampPagamento);
                 }
             });
         });
@@ -344,22 +358,26 @@ document.addEventListener("DOMContentLoaded", async function () {
         const currentYearSpan = filhosContentContainer.querySelector(".current-year");
         const enableYearText = filhosContentContainer.querySelector(".enable-year-text");
         const enableFilhoNameForCheckbox = filhosContentContainer.querySelector(".enable-filho-name-for-checkbox");
-        const hideMonthsBtn = filhosContentContainer.querySelector(".hide-months-btn");
+        const toggleMesesBtn = filhosContentContainer.querySelector(".toggle-meses-btn");
 
         if (currentYearSpan) currentYearSpan.textContent = `Ano: ${currentDisplayYear}`;
         if (enableYearText) enableYearText.textContent = currentDisplayYear;
         if (enableFilhoNameForCheckbox) enableFilhoNameForCheckbox.textContent = filho.nome;
-        if (hideMonthsBtn) {
+        if (toggleMesesBtn) {
             const mesesGridCurrentContainer = filhosContentContainer.querySelector(".meses-grid");
-            hideMonthsBtn.textContent = mesesGridCurrentContainer.classList.contains('hidden') ? 
+            toggleMesesBtn.textContent = mesesGridCurrentContainer.classList.contains('hidden') ? 
                 `Mostrar Meses (${currentDisplayYear})` : `Esconder Meses (${currentDisplayYear})`;
         }
-
+        
+        // Atualiza o estado do checkbox ao renderizar os meses
+        const enableYearCheckbox = filhosContentContainer.querySelector(".enable-year-checkbox");
+        if (enableYearCheckbox) {
+             enableYearCheckbox.checked = (filho.anosHabilitadosCalculoDestaPagina || []).includes(currentDisplayYear);
+        }
 
         calcularEExibirSaldo(filho, ano);
     }
 
-    // Adicionar novo pagamento
     if (pagamentoForm) {
         pagamentoForm.addEventListener("submit", async function (e) {
             e.preventDefault();
@@ -410,8 +428,8 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const updatedFilhoSnap = await getDocs(q);
                 if (!updatedFilhoSnap.empty) {
                     activeFilhoData = { id: updatedFilhoSnap.docs[0].id, ...updatedFilhoSnap.docs[0].data() };
-                    displayMonthsForYear(activeFilhoData, currentDisplayYear); // Renderiza meses com dados atualizados
-                    calcularEExibirSaldo(activeFilhoData, currentDisplayYear); // Atualiza saldo
+                    displayMonthsForYear(activeFilhoData, currentDisplayYear);
+                    calcularEExibirSaldo(activeFilhoData, currentDisplayYear);
                 }
 
             } catch (error) {
@@ -421,7 +439,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 
-    // Excluir pagamento
     async function deletePagamento(filhoId, timestampPagamento) {
         try {
             const filhoRef = doc(db, "filhos", filhoId);
@@ -455,7 +472,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    // Excluir filho
     async function deleteFilho(filhoId) {
         try {
             await deleteDoc(doc(db, "filhos", filhoId));
@@ -467,7 +483,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    // Função para formatar data (YYYY-MM-DD para DD/MM/AAAA)
     function formatarData(dataString) {
         if (!dataString) return '';
         const [ano, mes, dia] = dataString.split('-');
