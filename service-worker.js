@@ -1,21 +1,25 @@
-const CACHE_NAME = 'pensao-em-dia-cache-v7'; // AUMENTE A VERSÃO AQUI para forçar a nova instalação
+const CACHE_VERSION = 'v1';
+const CACHE_NAME = 'pensao-em-dia-cache-' + CACHE_VERSION;
+
 const urlsToCache = [
     './',
     './index.html',
+    './login.js',
+    './manifest.json',
+    './recuperar-senha.html',
+    './recuperar-senha.js',
+    // './script.js', // REMOVIDO: Este arquivo não existe, conforme sua confirmação.
+    './style.css',
     './cadastro.html',
+    './cadastro.js',
     './cadastrofilho.html',
+    './cadastrofilho.js',
+    './cadastrousuario.html',
+    './cadastrousuario.js',
+    './common.js', // Incluir common.js no cache, pois é essencial
     './dicas.html',
     './gestao.html',
-    './recuperar-senha.html',
-    './style.css',
-    './login.js',
-    './cadastro.js',
-    './cadastrofilho.js',
     './gestao.js',
-    './common.js',
-    './script.js', // VERIFIQUE ESTE ARQUIVO: ELE EXISTE? É USADO?
-    './recuperar-senha.js',
-    './manifest.json',
     './icons/icon-192x192.png',
     './icons/icon-512x512.png',
     'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js',
@@ -23,25 +27,60 @@ const urlsToCache = [
     'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js'
 ];
 
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        // Use Promise.all com cache.add para identificar a URL que falha
-        return Promise.all(
-          urlsToCache.map(url => {
-            return cache.add(url).catch(e => {
-              console.error(`Falha ao cachear URL: ${url}`, e);
-              throw e; // Lança o erro para que o install falhe e mostre no console
-            });
-          })
-        );
-      })
-      .catch(error => {
-        console.error('Falha geral na instalação do cache:', error);
-      })
-  );
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => {
+                console.log('Opened cache');
+                return cache.addAll(urlsToCache);
+            })
+    );
 });
 
-// ... (o restante do seu service-worker.js permanece o mesmo)
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+});
+
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        caches.match(event.request)
+            .then((response) => {
+                // Cache hit - return response
+                if (response) {
+                    return response;
+                }
+                // No cache hit - fetch from network
+                return fetch(event.request).then(
+                    (response) => {
+                        // Check if we received a valid response
+                        if (!response || response.status !== 200 || response.type !== 'basic') {
+                            return response;
+                        }
+
+                        // IMPORTANT: Clone the response. A response is a stream
+                        // and can only be consumed once. We must consume the response
+                        // once in the browser and once in the cache.
+                        const responseToCache = response.clone();
+
+                        caches.open(CACHE_NAME)
+                            .then((cache) => {
+                                cache.put(event.request, responseToCache);
+                            });
+
+                        return response;
+                    }
+                );
+            })
+    );
+});
