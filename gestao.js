@@ -116,14 +116,15 @@ document.addEventListener("DOMContentLoaded", async function () {
                 <button class="nav-btn next-year-btn">Próximo &gt;</button>
             </div>
 
-            <div class="year-options">
-                <input type="checkbox" class="enable-year-checkbox" id="enable-year-checkbox">
-                <label for="enable-year-checkbox">Habilitar <span class="enable-year-text">${currentDisplayYear}</span> para cálculo de dívida de <span class="enable-filho-name-for-checkbox">${activeFilhoData.nome}</span></label>
-                <button class="action-btn hide-months-btn">Esconder Meses (${currentDisplayYear})</button>
+            <div class="year-enable-toggle"> <label for="enable-year-checkbox">
+                    <input type="checkbox" class="enable-year-checkbox" id="enable-year-checkbox">
+                    Habilitar <span class="enable-year-text">${currentDisplayYear}</span> para cálculo de dívida de <span class="enable-filho-name-for-checkbox">${activeFilhoData.nome}</span>
+                </label>
+                <small>Apenas anos habilitados são considerados no montante devedor.</small>
             </div>
 
             <h3>Histórico de Pagamentos</h3>
-            <div class="meses-grid"> </div>
+            <button class="action-btn toggle-meses-btn">Esconder Meses (${currentDisplayYear})</button> <div class="meses-grid"> </div>
         `;
         
         addEventListenersToDynamicContent();
@@ -136,8 +137,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         const deleteFilhoBtn = filhosContentContainer.querySelector(".delete-filho-btn");
         const prevYearBtn = filhosContentContainer.querySelector(".prev-year-btn");
         const nextYearBtn = filhosContentContainer.querySelector(".next-year-btn");
-        const enableYearCheckbox = hijosContentContainer.querySelector(".enable-year-checkbox");
-        const hideMonthsBtn = filhosContentContainer.querySelector(".hide-months-btn");
+        const enableYearCheckbox = filhosContentContainer.querySelector(".enable-year-checkbox"); // CORRIGIDO: ID correto
+        const toggleMesesBtn = filhosContentContainer.querySelector(".toggle-meses-btn"); // CORRIGIDO: Classe correta do CSS
 
 
         if (registerPaymentBtn) {
@@ -166,20 +167,22 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
         }
         if (nextYearBtn) {
-            nextYearYear++;
-            showFilhoDetails(currentFilhoId, [activeFilhoData]);
+            nextYearBtn.addEventListener('click', () => { // CORRIGIDO: Event listener para nextYearBtn
+                currentDisplayYear++; // CORRIGIDO: Incrementa o ano
+                showFilhoDetails(currentFilhoId, [activeFilhoData]);
+            });
         }
         if (enableYearCheckbox) {
             enableYearCheckbox.addEventListener('change', () => {
                 calcularEExibirSaldo(activeFilhoData, currentDisplayYear);
             });
         }
-        if (hideMonthsBtn) {
-            const mesCardsContainer = filhosContentContainer.querySelector(".meses-grid"); // CORRIGIDO: Referencia a classe correta
-            if (mesCardsContainer) {
-                hideMonthsBtn.addEventListener('click', () => {
-                    mesCardsContainer.classList.toggle('hidden');
-                    hideMonthsBtn.textContent = mesCardsContainer.classList.contains('hidden') ? 
+        if (toggleMesesBtn) { // CORRIGIDO: Usando o botão e classe corretos
+            const mesesGridCurrentContainer = filhosContentContainer.querySelector(".meses-grid"); // CORRIGIDO: Referencia a classe correta
+            if (mesesGridCurrentContainer) {
+                toggleMesesBtn.addEventListener('click', () => {
+                    mesesGridCurrentContainer.classList.toggle('hidden');
+                    toggleMesesBtn.textContent = mesesGridCurrentContainer.classList.contains('hidden') ? 
                         `Mostrar Meses (${currentDisplayYear})` : `Esconder Meses (${currentDisplayYear})`;
                 });
             }
@@ -234,243 +237,4 @@ document.addEventListener("DOMContentLoaded", async function () {
         const totalPagoDisplay = filhosContentContainer.querySelector(".total-pago-display");
         const montanteDevedorDisplay = filhosContentContainer.querySelector(".montante-devedor-box");
 
-        if (totalDevidoDisplay) totalDevidoDisplay.textContent = `Total Devido: R$ ${totalDevidoAno.toFixed(2)}`;
-        if (totalPagoDisplay) totalPagoDisplay.textContent = `Total Pago: R$ ${totalPagoAno.toFixed(2)}`;
-        
-        const montanteDevedor = totalDevidoAno - totalPagoAno;
-        if (montanteDevedorDisplay) {
-            montanteDevedorDisplay.textContent = `Montante Devedor: R$ ${montanteDevedor.toFixed(2)}`;
-            // CORRIGIDO: Usando as classes do CSS para montante-devedor
-            montanteDevedorDisplay.classList.remove('verde', 'amarelo', 'vermelho'); // Limpa classes anteriores
-            if (montanteDevedor > 0) {
-                montanteDevedorDisplay.classList.add('vermelho');
-            } else if (montanteDevedor < 0) {
-                montanteDevedorDisplay.classList.add('verde'); // Se estiver negativo (pago a mais)
-            } else {
-                montanteDevedorDisplay.classList.add('verde'); // Se estiver zerado
-            }
-        }
-    }
-
-
-    // Renderiza os cards dos meses para o ano atual
-    function displayMonthsForYear(filho, ano) {
-        const mesesGridContainer = filhosContentContainer.querySelector(".meses-grid"); // CORRIGIDO: Usa a classe do CSS
-        if (!mesesGridContainer) return; 
-
-        mesesGridContainer.innerHTML = '';
-        const meses = [
-            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-        ];
-        
-        meses.forEach((nomeMes, index) => {
-            const mesNumero = index + 1;
-            const pagamentosDoMes = (filho.pagamentos || []).filter(p => {
-                const dataPag = new Date(p.data);
-                return dataPag.getFullYear() === ano && (dataPag.getMonth() + 1) === mesNumero;
-            });
-
-            let saldoMes = -filho.valorMensal; // Inicia com o valor devido do mês
-            let pagamentosExibicao = '';
-            if (pagamentosDoMes.length > 0) {
-                pagamentosDoMes.sort((a, b) => a.timestamp - b.timestamp).forEach(p => {
-                    saldoMes += p.valor;
-                    pagamentosExibicao += `
-                        <div class="pagamento-item">
-                            R$ ${p.valor.toFixed(2)} - ${formatarData(p.data)} 
-                            <button class="btn-excluir-pagamento" 
-                                data-filho-id="${filho.id}" 
-                                data-timestamp="${p.timestamp}">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>`;
-                });
-            }
-            
-            // CORRIGIDO: Usa as classes do CSS para a cor da caixa do mês e o nome do mês
-            let cardClass = 'nao-pago'; // Padrão
-            let mesNomeClass = 'nao-pago';
-            if (saldoMes >= 0) {
-                cardClass = 'pago-completo';
-                mesNomeClass = 'pago-completo';
-            } else if (saldoMes > -filho.valorMensal) {
-                cardClass = 'pago-parcial';
-                mesNomeClass = 'pago-parcial';
-            }
-
-
-            const cardHTML = `
-                <div class="mes-box ${cardClass}"> <h4 class="mes-nome ${mesNomeClass}">${nomeMes} ${ano}</h4> <p>Valor Mensal: R$ ${filho.valorMensal.toFixed(2)}</p>
-                    <p>Pagamentos:</p>
-                    <div class="pagamentos-lista">${pagamentosExibicao || 'Nenhum'}</div> <p>Saldo do Mês: R$ ${saldoMes.toFixed(2)}</p>
-                    <button class="adicionar-pagamento" data-filho-id="${filho.id}" 
-                            data-mes="${mesNumero}" 
-                            data-ano="${ano}">Adicionar Pagamento</button>
-                </div>
-            `;
-            mesesGridContainer.insertAdjacentHTML('beforeend', cardHTML);
-        });
-
-        mesesGridContainer.querySelectorAll(".adicionar-pagamento").forEach(btn => {
-            btn.addEventListener("click", (e) => {
-                currentFilhoId = e.target.dataset.filhoId;
-                const mesDoCard = e.target.dataset.mes;
-                const anoDoCard = e.target.dataset.ano;
-                
-                const dataPreenchida = `${String(activeFilhoData.diaVencimento).padStart(2, '0')}/${String(mesDoCard).padStart(2, '0')}/${anoDoCard}`;
-                modalData.value = dataPreenchida;
-
-                if (pagamentoModal) {
-                    pagamentoModal.style.display = "block";
-                    modalValor.value = '';
-                }
-            });
-        });
-
-        mesesGridContainer.querySelectorAll(".btn-excluir-pagamento").forEach(btn => { // CORRIGIDO: Usa a classe do CSS
-            btn.addEventListener("click", (e) => {
-                const idFilho = e.target.dataset.filhoId;
-                // Procura o elemento pai <i> ou o próprio botão se for o caso
-                const targetElement = e.target.tagName === 'I' ? e.target.closest('.btn-excluir-pagamento') : e.target;
-                const timestampPagamento = parseInt(targetElement.dataset.timestamp);
-
-                if (confirm("Tem certeza que deseja excluir este pagamento?")) {
-                    deletePagamento(idFilho, timestampPagamento);
-                }
-            });
-        });
-
-        const currentYearSpan = filhosContentContainer.querySelector(".current-year");
-        const enableYearText = filhosContentContainer.querySelector(".enable-year-text");
-        const enableFilhoNameForCheckbox = filhosContentContainer.querySelector(".enable-filho-name-for-checkbox");
-        const hideMonthsBtn = filhosContentContainer.querySelector(".hide-months-btn");
-
-        if (currentYearSpan) currentYearSpan.textContent = `Ano: ${currentDisplayYear}`;
-        if (enableYearText) enableYearText.textContent = currentDisplayYear;
-        if (enableFilhoNameForCheckbox) enableFilhoNameForCheckbox.textContent = filho.nome;
-        if (hideMonthsBtn) {
-            const mesesGridCurrentContainer = filhosContentContainer.querySelector(".meses-grid");
-            hideMonthsBtn.textContent = mesesGridCurrentContainer.classList.contains('hidden') ? 
-                `Mostrar Meses (${currentDisplayYear})` : `Esconder Meses (${currentDisplayYear})`;
-        }
-
-
-        calcularEExibirSaldo(filho, ano);
-    }
-
-    // Adicionar novo pagamento
-    if (pagamentoForm) {
-        pagamentoForm.addEventListener("submit", async function (e) {
-            e.preventDefault();
-
-            const valor = parseFloat(modalValor.value);
-            const dataStr = modalData.value;
-
-            const regexData = /^\d{2}\/\d{2}\/\d{4}$/;
-            if (!regexData.test(dataStr)) {
-                alert("Formato de data inválido. Use DD/MM/AAAA.");
-                return;
-            }
-
-            const [dia, mes, ano] = dataStr.split('/').map(Number);
-            const dataObjeto = new Date(ano, mes - 1, dia);
-
-            if (isNaN(valor) || valor <= 0) {
-                alert("Por favor, insira um valor de pagamento válido.");
-                return;
-            }
-            if (isNaN(dataObjeto.getTime())) {
-                 alert("Data inválida. Por favor, use DD/MM/AAAA.");
-                 return;
-            }
-            
-            const anoAtualLimite = new Date().getFullYear();
-            if (dataObjeto.getFullYear() < (anoAtualLimite - 5) || dataObjeto.getFullYear() > (anoAtualLimite + 1)) {
-                alert(`Por favor, insira uma data de pagamento entre ${anoAtualLimite - 5} e ${anoAtualLimite + 1}.`);
-                return;
-            }
-
-            const novoPagamento = {
-                valor: valor,
-                data: `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`,
-                timestamp: Date.now() 
-            };
-
-            try {
-                const filhoRef = doc(db, "filhos", currentFilhoId);
-                await updateDoc(filhoRef, {
-                    pagamentos: arrayUnion(novoPagamento)
-                });
-
-                alert("Pagamento registrado com sucesso!");
-                pagamentoModal.style.display = "none";
-                
-                const q = query(collection(db, "filhos"), where("userId", "==", auth.currentUser.uid), where("__name__", "==", currentFilhoId));
-                const updatedFilhoSnap = await getDocs(q);
-                if (!updatedFilhoSnap.empty) {
-                    activeFilhoData = { id: updatedFilhoSnap.docs[0].id, ...updatedFilhoSnap.docs[0].data() };
-                    displayMonthsForYear(activeFilhoData, currentDisplayYear); // Renderiza meses com dados atualizados
-                    calcularEExibirSaldo(activeFilhoData, currentDisplayYear); // Atualiza saldo
-                }
-
-            } catch (error) {
-                console.error("Erro ao registrar pagamento:", error);
-                alert("Erro ao registrar pagamento. Tente novamente.");
-            }
-        });
-    }
-
-    // Excluir pagamento
-    async function deletePagamento(filhoId, timestampPagamento) {
-        try {
-            const filhoRef = doc(db, "filhos", filhoId);
-            const q = query(collection(db, "filhos"), where("userId", "==", auth.currentUser.uid), where("__name__", "==", filhoId));
-            const filhoDocSnap = await getDocs(q);
-            
-            if (filhoDocSnap.empty) {
-                console.error("Filho não encontrado para exclusão de pagamento.");
-                return;
-            }
-            const filhoData = filhoDocSnap.docs[0].data();
-            
-            const pagamentosAtuais = filhoData.pagamentos || [];
-            const pagamentoParaRemover = pagamentosAtuais.find(p => p.timestamp === timestampPagamento);
-
-            if (pagamentoParaRemover) {
-                await updateDoc(filhoRef, {
-                    pagamentos: arrayRemove(pagamentoParaRemover)
-                });
-                alert("Pagamento excluído com sucesso!");
-                
-                const updatedFilhoSnap = query(collection(db, "filhos"), where("userId", "==", auth.currentUser.uid), where("__name__", "==", filhoId));
-                const updatedFilhoDocs = await getDocs(updatedFilhoSnap);
-                activeFilhoData = { id: updatedFilhoDocs.docs[0].id, ...updatedFilhoDocs.docs[0].data() };
-                displayMonthsForYear(activeFilhoData, currentDisplayYear);
-                calcularEExibirSaldo(activeFilhoData, currentDisplayYear);
-            }
-        } catch (error) {
-            console.error("Erro ao excluir pagamento:", error);
-            alert("Erro ao excluir pagamento. Tente novamente.");
-        }
-    }
-
-    // Excluir filho
-    async function deleteFilho(filhoId) {
-        try {
-            await deleteDoc(doc(db, "filhos", filhoId));
-            alert("Filho excluído com sucesso!");
-            loadFilhos(auth.currentUser.uid);
-        } catch (error) {
-            console.error("Erro ao excluir filho:", error);
-            alert("Erro ao excluir filho. Tente novamente.");
-        }
-    }
-
-    // Função para formatar data (YYYY-MM-DD para DD/MM/AAAA)
-    function formatarData(dataString) {
-        if (!dataString) return '';
-        const [ano, mes, dia] = dataString.split('-');
-        return `${dia}/${mes}/${ano}`;
-    }
-});
+        if (totalDevidoDisplay) totalDevidoDisplay.textContent = `Total Devido: R$ ${totalDevidoAno.toFixed(2
