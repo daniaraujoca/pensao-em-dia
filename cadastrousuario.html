@@ -2,31 +2,38 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Cadastro de Usuário</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pensão em Dia - Cadastro de Usuário</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="container">
-        <form id="cadastroUsuarioForm">
-            <h2>Cadastre-se</h2>
-            <label for="nomeCadastro">Nome Completo:</label>
-            <input type="text" id="nomeCadastro" required />
-
-            <label for="emailCadastro">Email:</label>
-            <input type="email" id="emailCadastro" required />
-
-            <label for="senhaCadastro">Senha:</label>
-            <input type="password" id="senhaCadastro" required />
-
-            <label for="confirmarSenha">Confirmar Senha:</label>
-            <input type="password" id="confirmarSenha" required />
-
-            <button type="submit">Cadastrar</button>
-            <p>Já tem uma conta? <a href="index.html">Faça Login</a></p>
-        </form>
+    <div class="menu-superior">
+        <span id="usuarioLogadoNome"></span>
+        <button id="logoutBtn" class="btn-logout">Sair</button>
     </div>
 
-    <script src="cadastrousuario.js"></script>
+    <div class="container">
+        <h2>Cadastre-se</h2>
+        <form id="cadastroUsuarioForm">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" required />
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" required />
+
+            <label for="password">Senha:</label>
+            <input type="password" id="password" required />
+
+            <label for="confirmPassword">Confirmar Senha:</label>
+            <input type="password" id="confirmPassword" required />
+
+            <button type="submit">Cadastrar</button>
+            <p>Já tem uma conta? <a href="index.html">Faça login aqui</a></p>
+        </form>
+        <div id="feedbackMessage" class="feedback-message" style="display: none;"></div>
+    </div>
+
+    <script type="module" src="common.js"></script>
+    <script type="module" src="cadastrousuario.js"></script>
 </body>
 </html>
