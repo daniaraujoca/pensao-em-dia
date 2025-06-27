@@ -1,20 +1,23 @@
 const CACHE_NAME = 'pensao-em-dia-cache-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/cadastro.html',
-  '/cadastrofilho.html',
-  '/dicas.html',
-  '/gestao.html',
-  '/style.css',
-  '/login.js',
-  '/cadastro.js', // Incluído, assumindo que você tem este arquivo
-  '/cadastrofilho.js', // Incluído, assumindo que você tem este arquivo
-  '/gestao.js',
-  '/common.js',
-  '/script.js', // Incluído, caso seja usado
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  './', // Representa a raiz do seu aplicativo (ex: /pensao-em-dia/)
+  './index.html',
+  './cadastro.html',
+  './cadastrofilho.html',
+  './dicas.html',
+  './gestao.html',
+  './style.css',
+  './login.js',
+  './cadastro.js',
+  './cadastrofilho.js',
+  './gestao.js',
+  './common.js',
+  // Se 'script.js' não existir ou não for usado, você pode removê-lo.
+  // Assumi que você o mencionou em gestao.html e mantive aqui.
+  './script.js',
+  './manifest.json',
+  './icons/icon-192x192.png',
+  './icons/icon-512x512.png'
 ];
 
 // Evento de instalação: instala o Service Worker e guarda os assets no cache
