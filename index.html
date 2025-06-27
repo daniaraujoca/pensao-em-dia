@@ -30,9 +30,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"; // Importa getAuth
-        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
-
+        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        
         const firebaseConfig = {
           apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
           authDomain: "pensaoemdiaapp.firebaseapp.com",
@@ -44,14 +43,11 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        // const analytics = getAnalytics(app); // Se estiver usando Analytics
-
-        // Torna a instância de autenticação acessível globalmente
         window.auth = getAuth(app); 
 
         if ('serviceWorker' in navigator) {
           window.addEventListener('load', function() {
-            navigator.serviceWorker.register('./service-worker.js').then(function(registration) { // Caminho corrigido
+            navigator.serviceWorker.register('./service-worker.js').then(function(registration) {
               console.log('ServiceWorker registration successful with scope: ', registration.scope);
             }, function(err) {
               console.log('ServiceWorker registration failed: ', err);
@@ -60,6 +56,6 @@
         }
     </script>
     
-    <script src="./login.js"></script> 
+    <script src="./login.js" type="module"></script> 
 </body>
 </html>
