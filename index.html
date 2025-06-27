@@ -1,49 +1,40 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Pensão em Dia</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pensão em Dia - Login</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="common.js"></script>
 </head>
 <body>
-    <header class="menu-superior">
-        <h1>Pensão em Dia</h1>
-    </header>
-
-    <div class="container">
-        <h1>Login</h1>
+    <div class="login-container">
+        <h2>Bem-vindo ao Pensão em Dia</h2>
         <form id="loginForm">
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Senha:</label>
-                <input type="password" id="password" required>
-            </div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" required />
+
+            <label for="password">Senha:</label>
+            <input type="password" id="password" required />
+
             <button type="submit">Entrar</button>
+            <p>Esqueceu sua senha? <a href="recuperar-senha.html">Recuperar Senha</a></p>
+            <p>Não tem uma conta? <a href="cadastro.html">Cadastre-se</a></p>
         </form>
-        <p id="feedbackLogin" class="feedback-message"></p>
-        <p>Não tem uma conta? <a href="./cadastro.html">Cadastre-se aqui</a></p>
-        <p><a href="./recuperar-senha.html">Esqueceu sua senha?</a></p>
+        <div id="feedbackMessage" class="feedback-message" style="display: none;"></div>
     </div>
 
-    <!-- common.js inicializa o Firebase e exporta auth/db -->
-    <script type="module" src="./common.js"></script>
-    <!-- login.js importa auth/db de common.js -->
-    <script type="module" src="./login.js"></script>
-    
+    <script src="login.js" type="module"></script>
     <script>
-        // Registrar Service Worker (mantido como está)
+        // Registro do Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
                     .then(registration => {
-                        console.log('Service Worker registrado com sucesso:', registration);
+                        console.log('Service Worker registrado: ', registration);
                     })
                     .catch(error => {
-                        console.error('Falha no registro do Service Worker:', error);
+                        console.error('Falha no registro do Service Worker: ', error);
                     });
             });
         }
