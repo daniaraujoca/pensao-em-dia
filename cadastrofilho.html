@@ -38,25 +38,6 @@
         <div id="feedbackCadastroFilho" class="feedback-message" style="display: none;"></div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; // NOVO: Firestore SDK
-
-        const firebaseConfig = {
-          apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
-          authDomain: "pensaoemdiaapp.firebaseapp.com",
-          projectId: "pensaoemdiaapp",
-          storageBucket: "pensaoemdiaapp.firebasestorage.app",
-          messagingSenderId: "322478168070",
-          appId: "1:322478168070:web:494318199ac307c7868b87",
-          measurementId: "G-WZ5ZGMWJJH"
-        };
-        const app = initializeApp(firebaseConfig);
-        window.auth = getAuth(app); 
-        window.db = getFirestore(app); // NOVO: Inicializa o Firestore e o torna global
-    </script>
-
     <script src="./common.js" type="module"></script>
     <script src="./cadastrofilho.js" type="module"></script>
 </body>
