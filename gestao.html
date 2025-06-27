@@ -1,80 +1,52 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Pensão Alimentícia</title>
-    <link rel="stylesheet" href="./style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Pensao em Dia - Gestão de Pensão</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40NZMfHAaXZoLkws/L+gd7/oZlYdBlglSmDqjs7BvK8o+2s7uO/D9bXv1vV2k/Fk9vF9C9F9F9F9==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="nav-brand">Pensão em Dia</div>
-            <ul class="nav-links">
-                <li><a href="./cadastrofilho.html">Cadastro de Filhos</a></li>
-                <li><a href="./gestao.html">Gestão de Pensão</a></li>
-                <li><a href="./dicas.html">Dicas</a></li>
-            </ul>
-            <div class="user-info">
-                Olá, <span id="userName">Usuário</span>! <button id="logoutBtn">Sair</button>
-            </div>
+    <header class="menu-superior">
+        <h1>Pensao em Dia</h1>
+        <nav class="abas-navegacao">
+            <a href="gestao.html" class="aba ativa">Gestão de Pensão</a>
+            <a href="cadastrofilho.html" class="aba">Cadastro de Filhos</a>
+            <a href="dicas.html" class="aba">Dicas</a>
         </nav>
+        <span id="nomeUsuarioLogado" class="bem-vindo-usuario"></span>
+        <button id="logoutBtn" class="logout-btn">Sair</button>
     </header>
 
-    <main class="container">
+    <div class="container">
         <h1>Gestão de Pensão Alimentícia</h1>
-
-        <div class="tabs-container">
-            <div id="filhoTabs" class="tabs-header">
-                </div>
-            <div id="filhosContent" class="tabs-content filho-content active">
-                <p class="sem-filhos-gestao">Carregando filhos...</p>
+        
+        <div id="filhoTabs">
             </div>
-        </div>
 
-        <div id="pagamentoModal" class="modal">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h2>Registrar Novo Pagamento</h2>
-                <form id="pagamentoForm">
-                    <label for="modalValor">Valor do Pagamento:</label>
-                    <input type="number" id="modalValor" step="0.01" required>
-
-                    <label for="modalData">Data do Pagamento (DD/MM/AAAA):</label>
-                    <input type="text" id="modalData" placeholder="DD/MM/AAAA" required>
-
-                    <button type="submit">Adicionar Pagamento</button>
-                </form>
+        <div id="filhosContent">
             </div>
+
+    </div>
+
+    <div id="pagamentoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Registrar Pagamento</h2>
+            <form id="pagamentoForm">
+                <label for="modalValor">Valor:</label>
+                <input type="number" id="modalValor" step="0.01" required>
+
+                <label for="modalData">Data (DD/MM/AAAA):</label>
+                <input type="text" id="modalData" placeholder="DD/MM/AAAA" maxlength="10" required>
+
+                <button type="submit">Salvar Pagamento</button>
+            </form>
         </div>
-    </main>
+    </div>
 
-    <footer>
-        <p>&copy; 2025 Pensão em Dia. Todos os direitos reservados.</p>
-    </footer>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-        // Sua configuração do Firebase (substitua pelos seus dados reais)
-        const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "SEU_AUTH_DOMAIN",
-            projectId: "SEU_PROJECT_ID",
-            storageBucket: "SEU_STORAGE_BUCKET",
-            messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-            appId: "SEU_APP_ID"
-        };
-
-        // Inicialize o Firebase
-        const app = initializeApp(firebaseConfig);
-        window.auth = getAuth(app);
-        window.db = getFirestore(app);
-    </script>
-    <script type="module" src="./common.js"></script>
-    <script type="module" src="./gestao.js"></script>
-</body>
+    <script type="module" src="common.js"></script>
+    <script type="module" src="gestao.js"></script>
+    </body>
 </html>
