@@ -1,10 +1,9 @@
-// common.js
-// IMPORTS NECESSÁRIOS PARA common.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// Sua configuração do Firebase (obtida diretamente das informações fornecidas por você)
+// Sua configuração do Firebase SDK.
+// ATENÇÃO: Substitua 'null' pelos seus próprios valores do console do Firebase.
 const firebaseConfig = {
   apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4",
   authDomain: "pensaoemdiaapp.firebaseapp.com",
@@ -14,88 +13,85 @@ const firebaseConfig = {
   appId: "1:322478168070:web:494318199ac307c7868b87",
   measurementId: "G-WZ5ZGMWJJH"
 };
-
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
+
+// Obtém e expõe as instâncias de autenticação e Firestore globalmente
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Exporta as instâncias para serem usadas em outros módulos
-export { app, auth, db };
+window.auth = auth;
+window.db = db;
+window.firebaseApp = app; // Expor o app também pode ser útil para outras funções Firebase
 
-// Função para verificar o estado da autenticação e gerenciar o perfil do usuário
-// Esta função agora GARANTE que o perfil do usuário existe no Firestore
-auth.onAuthStateChanged(async (user) => {
-    // Estes elementos são globais e devem existir na maioria das páginas
-    const navLinks = document.getElementById("navLinks"); // Se houver
-    const loginLink = document.getElementById("loginLink"); // Se houver
-    const logoutLink = document.getElementById("logoutBtn"); // Seu botão "Sair"
-    const nomeUsuarioLogado = document.getElementById("nomeUsuarioLogado");
+// Lógica para exibição do nome do usuário e controle de acesso a páginas
+document.addEventListener('DOMContentLoaded', () => {
+    const usuarioLogadoNomeSpan = document.getElementById('usuarioLogadoNome');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-    if (user) {
-        // Usuário logado
-        if (loginLink) loginLink.style.display = "none";
-        if (logoutLink) logoutLink.style.display = "block";
-        if (navLinks) navLinks.classList.add("logged-in");
-        if (nomeUsuarioLogado) nomeUsuarioLogado.textContent = `Bem-vindo(a), ${user.email}`;
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // Usuário está logado
+            if (usuarioLogadoNomeSpan) {
+                usuarioLogadoNomeSpan.textContent = user.displayName || user.email;
+            }
+            if (logoutBtn) {
+                logoutBtn.style.display = 'block';
+            }
+        } else {
+            // Usuário não está logado
+            // Redireciona para a página de login se não estiver em uma página de acesso público
+            const path = window.location.pathname;
+            const publicPages = [
+                '/index.html',
+                '/', // Para a raiz do site
+                '/cadastro.html',
+                '/recuperar-senha.html'
+            ];
 
-        const userProfileRef = doc(db, "users", user.uid);
-        try {
-            const docSnap = await getDoc(userProfileRef);
-
-            if (!docSnap.exists()) {
-                console.warn("Documento de perfil do usuário não encontrado no Firestore. Criando agora...");
-                await setDoc(userProfileRef, {
-                    email: user.email,
-                    createdAt: new Date(),
-                }, { merge: true });
-                console.log("Documento de perfil do usuário criado com sucesso para:", user.email);
-            } else {
-                console.log("Documento de perfil do usuário encontrado:", docSnap.data().email);
+            if (!publicPages.includes(path) && !publicPages.includes(path.replace('.html', ''))) { // Verifica com e sem .html
+                window.location.href = 'index.html';
             }
 
-            const protectedPages = ["dashboard.html", "gestao.html", "cadastrofilho.html", "dicas.html", "perfil.html"];
-            const currentPage = window.location.pathname.split("/").pop();
-
-            if (protectedPages.includes(currentPage) && window.location.href.includes("index.html?logout=true")) {
-                window.location.href = "index.html";
+            if (usuarioLogadoNomeSpan) {
+                usuarioLogadoNomeSpan.textContent = ''; // Limpa o nome se não logado
             }
-
-        } catch (e) {
-            console.error("Erro ao gerenciar o perfil do usuário no Firestore:", e);
-            alert("Ocorreu um erro ao carregar seu perfil. Por favor, tente novamente ou entre em contato com o suporte.");
-            signOut(auth);
-            window.location.href = "index.html";
+            if (logoutBtn) {
+                logoutBtn.style.display = 'none'; // Esconde o botão se não logado
+            }
         }
+    });
 
-    } else {
-        // Usuário deslogado
-        if (loginLink) loginLink.style.display = "block";
-        if (logoutLink) logoutLink.style.display = "none";
-        if (navLinks) navLinks.classList.remove("logged-in");
-        if (nomeUsuarioLogado) nomeUsuarioLogado.textContent = '';
-
-        const protectedPages = ["dashboard.html", "gestao.html", "cadastrofilho.html", "dicas.html", "perfil.html"];
-        const currentPage = window.location.pathname.split("/").pop();
-
-        if (protectedPages.includes(currentPage) && currentPage !== "index.html") {
-            console.warn(`Usuário não autenticado. Redirecionando de ${currentPage} para index.html`);
-            window.location.href = "index.html";
-        }
+    // Lógica para o botão de logout (centralizada aqui)
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut()
+                .then(() => {
+                    localStorage.removeItem("usuarioLogadoEmail");
+                    localStorage.removeItem("usuarioLogadoNome");
+                    // Redireciona para a página de login após o logout
+                    window.location.href = 'index.html';
+                })
+                .catch((error) => {
+                    console.error("Erro ao fazer logout:", error);
+                    alert("Erro ao fazer logout. Tente novamente."); // Alerta simples em caso de erro no logout
+                });
+        });
     }
 });
 
-// Lógica de Logout
-if (document.getElementById("logoutBtn")) {
-    document.getElementById("logoutBtn").addEventListener("click", async (e) => {
-        e.preventDefault();
-        try {
-            await signOut(auth);
-            console.log("Usuário deslogado com sucesso!");
-            window.location.href = "index.html?logout=true";
-        } catch (error) {
-            console.error("Erro ao deslogar:", error);
-            alert("Erro ao deslogar. Por favor, tente novamente.");
-        }
+
+// Função auxiliar para obter o UID do usuário logado de forma confiável
+// Outros scripts podem importar e usar esta função.
+export function obterUsuarioLogadoId() {
+    return new Promise((resolve, reject) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            unsubscribe(); // Para de ouvir as mudanças após a primeira resposta
+            if (user) {
+                resolve(user.uid);
+            } else {
+                resolve(null);
+            }
+        }, reject);
     });
 }
