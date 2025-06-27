@@ -54,7 +54,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; // NOVO: Firestore SDK
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; 
         
         const firebaseConfig = {
           apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
@@ -67,11 +67,10 @@
         };
         const app = initializeApp(firebaseConfig);
         window.auth = getAuth(app); 
-        window.db = getFirestore(app); // NOVO: Inicializa o Firestore e o torna global
+        window.db = getFirestore(app); 
     </script>
-    
     <script src="./common.js" type="module"></script>
-    <script src="./script.js" type="module"></script> 
-    <script src="./gestao.js" type="module"></script>
+    <script src="./script.js"></script> 
+    <script src="./gestao.js"></script>
 </body>
 </html>
