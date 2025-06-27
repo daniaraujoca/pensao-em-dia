@@ -28,10 +28,26 @@
             <button type="submit">Cadastrar</button>
         </form>
         <div class="link-login">
-            <p>Já tem conta? <a href="index.html">Faça login aqui</a></p>
+            <p>Já tem conta? <a href="./index.html">Faça login aqui</a></p>
         </div>
     </div>
 
-    <script src="cadastro.js"></script>
+    <script src="./cadastro.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
+          authDomain: "pensaoemdiaapp.firebaseapp.com",
+          projectId: "pensaoemdiaapp",
+          storageBucket: "pensaoemdiaapp.firebasestorage.app",
+          messagingSenderId: "322478168070",
+          appId: "1:322478168070:web:494318199ac307c7868b87",
+          measurementId: "G-WZ5ZGMWJJH"
+        };
+        const app = initializeApp(firebaseConfig);
+        window.auth = getAuth(app); 
+    </script>
 </body>
 </html>
