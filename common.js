@@ -1,76 +1,105 @@
 // common.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; // Importa doc e getDoc
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// Suas credenciais do Firebase - PREENCHIDAS
+// Sua configuração do Firebase (substitua pelos seus dados reais)
 const firebaseConfig = {
-    apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4",
-    authDomain: "pensaoemdiaapp.firebaseapp.com",
-    projectId: "pensaoemdiaapp",
-    storageBucket: "pensaoemdiaapp.firebasestorage.app",
-    messagingSenderId: "322478168070",
-    appId: "1:322478168070:web:494318199ac307c7868b87",
-    measurementId: "G-WZ5ZGMWJJH"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
 };
 
+// Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-document.addEventListener("DOMContentLoaded", function() {
-    const nomeUsuarioLogado = document.getElementById("nomeUsuarioLogado");
-    const logoutBtn = document.getElementById("logoutBtn");
+// Exporta as instâncias para serem usadas em outros módulos
+export { app, auth, db };
 
-    onAuthStateChanged(auth, async (user) => { // Tornar a função async
-        const currentPath = window.location.pathname;
+// Função para verificar o estado da autenticação e gerenciar o perfil do usuário
+// Esta função agora GARANTE que o perfil do usuário existe no Firestore
+auth.onAuthStateChanged(async (user) => {
+    const navLinks = document.getElementById("navLinks");
+    const loginLink = document.getElementById("loginLink");
+    const logoutLink = document.getElementById("logoutLink");
 
-        if (user) {
-            // Usuário está logado
-            if (nomeUsuarioLogado) {
-                // Tenta buscar o nome do usuário no Firestore
-                const userProfileRef = doc(db, "users", user.uid, "profile", "data");
-                try {
-                    const docSnap = await getDoc(userProfileRef);
-                    if (docSnap.exists()) {
-                        const userData = docSnap.data();
-                        nomeUsuarioLogado.textContent = `Olá, ${userData.nome}!`; // Exibe o nome
-                    } else {
-                        console.warn("Documento de perfil do usuário não encontrado no Firestore.");
-                        nomeUsuarioLogado.textContent = `Olá, ${user.email}!`; // Fallback para email
-                    }
-                } catch (error) {
-                    console.error("Erro ao buscar perfil do usuário:", error);
-                    nomeUsuarioLogado.textContent = `Olá, ${user.email}!`; // Fallback para email em caso de erro
-                }
+    if (user) {
+        // Usuário logado
+        if (loginLink) loginLink.style.display = "none";
+        if (logoutLink) logoutLink.style.display = "block";
+        if (navLinks) navLinks.classList.add("logged-in"); // Adiciona classe para estilizar links logado
+
+        const userProfileRef = doc(db, "users", user.uid);
+        try {
+            const docSnap = await getDoc(userProfileRef);
+
+            if (!docSnap.exists()) {
+                // Se o documento do perfil do usuário NÃO EXISTE, cria um
+                console.warn("Documento de perfil do usuário não encontrado no Firestore. Criando agora...");
+                await setDoc(userProfileRef, {
+                    email: user.email,
+                    createdAt: new Date(), // Adiciona um timestamp de criação
+                    // Você pode adicionar outros campos iniciais aqui se necessário
+                }, { merge: true }); // Use merge:true para não sobrescrever acidentalmente se o documento for criado externamente.
+                console.log("Documento de perfil do usuário criado com sucesso para:", user.email);
+            } else {
+                console.log("Documento de perfil do usuário encontrado:", docSnap.data().email);
             }
 
-            if (currentPath.endsWith('/') || currentPath.endsWith('/index.html') || currentPath.endsWith('/cadastro.html')) {
-                window.location.href = "gestao.html";
-            }
-        } else {
-            // Usuário NÃO está logado
-            if (nomeUsuarioLogado) {
-                nomeUsuarioLogado.textContent = "";
-            }
-            if (!currentPath.endsWith('/index.html') && !currentPath.endsWith('/cadastro.html')) {
+            // Lógica para redirecionar páginas protegidas
+            const protectedPages = ["dashboard.html", "gestao.html", "cadastrofilho.html", "dicas.html", "perfil.html"];
+            const currentPage = window.location.pathname.split("/").pop(); // Obtém o nome do arquivo atual
+
+            if (protectedPages.includes(currentPage) && window.location.href.includes("index.html?logout=true")) {
+                // Caso especial: se o usuário acabou de fazer logout e está em uma página protegida, redireciona para a home
                 window.location.href = "index.html";
             }
-            localStorage.removeItem("usuarioLogadoEmail");
-            localStorage.removeItem("filhosPorUsuario");
+            // Se o usuário está logado e em uma página que *não deveria* acessar logado (ex: login/registro)
+            // if (currentPage === "index.html" || currentPage === "registro.html") {
+            //     window.location.href = "dashboard.html"; // Redireciona para o dashboard
+            // }
+
+        } catch (e) {
+            console.error("Erro ao gerenciar o perfil do usuário no Firestore:", e);
+            alert("Ocorreu um erro ao carregar seu perfil. Por favor, tente novamente ou entre em contato com o suporte.");
+            signOut(auth); // Força o logout se houver um erro crítico
+            window.location.href = "index.html";
         }
-    });
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth).then(() => {
-                localStorage.removeItem("usuarioLogadoEmail");
-                localStorage.removeItem("filhosPorUsuario");
-                window.location.href = "index.html";
-            }).catch((error) => {
-                console.error("Erro ao fazer logout:", error);
-                alert("Erro ao fazer logout. Tente novamente.");
-            });
-        });
+    } else {
+        // Usuário deslogado
+        if (loginLink) loginLink.style.display = "block";
+        if (logoutLink) logoutLink.style.display = "none";
+        if (navLinks) navLinks.classList.remove("logged-in");
+
+        // Redireciona para a página inicial (ou login) se tentar acessar uma página protegida
+        const protectedPages = ["dashboard.html", "gestao.html", "cadastrofilho.html", "dicas.html", "perfil.html"];
+        const currentPage = window.location.pathname.split("/").pop();
+
+        if (protectedPages.includes(currentPage) && currentPage !== "index.html") {
+            console.warn(`Usuário não autenticado. Redirecionando de ${currentPage} para index.html`);
+            window.location.href = "index.html";
+        }
     }
 });
+
+// Lógica de Logout
+if (document.getElementById("logoutLink")) {
+    document.getElementById("logoutLink").addEventListener("click", async (e) => {
+        e.preventDefault();
+        try {
+            await signOut(auth);
+            console.log("Usuário deslogado com sucesso!");
+            // Adiciona um parâmetro para que o common.js saiba que foi um logout
+            window.location.href = "index.html?logout=true";
+        } catch (error) {
+            console.error("Erro ao deslogar:", error);
+            alert("Erro ao deslogar. Por favor, tente novamente.");
+        }
+    });
+}
