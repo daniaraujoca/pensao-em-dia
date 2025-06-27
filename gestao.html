@@ -68,21 +68,6 @@
         const app = initializeApp(firebaseConfig);
         window.auth = getAuth(app); 
         window.db = getFirestore(app); 
-        // Exponha as funções do firestore globalmente para scripts não modulares
-        // Embora gestao.js agora será um módulo, outros scripts podem precisar disso.
-        window.firebase = {
-            firestore: {
-                collection: getFirestore(app).collection, // Isso não está correto se db já é a instância
-                query: getFirestore(app).query, // Isso não está correto se db já é a instância
-                where: getFirestore(app).where, // Isso não está correto se db já é a instância
-                getDocs: getFirestore(app).getDocs, // Isso não está correto se db já é a instância
-                doc: getFirestore(app).doc, // Isso não está correto se db já é a instância
-                updateDoc: getFirestore(app).updateDoc, // Isso não está correto se db já é a instância
-                arrayUnion: getFirestore(app).arrayUnion, // Isso não está correto se db já é a instância
-                arrayRemove: getFirestore(app).arrayRemove, // Isso não está correto se db já é a instância
-                deleteDoc: getFirestore(app).deleteDoc // Isso não está correto se db já é a instância
-            }
-        };
     </script>
     <script src="./common.js" type="module"></script>
     <script src="./script.js"></script> 
