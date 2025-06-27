@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pensão em Dia - Login</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="/manifest.json"> </head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required />
+
+            <label for="password">Senha:</label>
+            <input type="password" id="password" name="password" required />
+
+            <button type="submit">Entrar</button>
+        </form>
+        <div class="link-cadastro">
+            <p>Não tem uma conta? <a href="cadastro.html">Cadastre-se aqui</a></p>
+        </div>
+        <div id="feedbackMessage" class="feedback-message" style="display: none;"></div>
+    </div>
+
+    <script src="login.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+            // Registro bem-sucedido
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, function(err) {
+            // Registro falhou :(
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+    </script> </body>
+</html>
