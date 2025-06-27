@@ -1,47 +1,25 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recuperar Senha - Pensão em Dia</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Pensão em Dia - Recuperar Senha</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="common.js"></script> 
 </head>
 <body>
-    <header class="menu-superior">
-        <h1>Pensão em Dia</h1>
-    </header>
-
-    <div class="container">
-        <h1>Recuperar Senha</h1>
+    <div class="login-container">
+        <h2>Recuperar Senha</h2>
         <form id="recuperarSenhaForm">
-            <div class="form-group">
-                <label for="recuperarEmail">Email:</label>
-                <input type="email" id="recuperarEmail" required>
-            </div>
-            <button type="submit">Enviar Link de Recuperação</button>
+            <label for="emailRecuperacao">Email:</label>
+            <input type="email" id="emailRecuperacao" required />
+
+            <button type="submit">Redefinir Senha</button>
+            <p>Lembrou sua senha? <a href="index.html">Faça login aqui</a></p>
         </form>
-        <p id="feedbackRecuperacao" class="feedback-message"></p>
-        <p><a href="./index.html">Voltar para o Login</a></p>
+        <div id="feedbackMessage" class="feedback-message" style="display: none;"></div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; 
-        
-        const firebaseConfig = {
-          apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
-          authDomain: "pensaoemdiaapp.firebaseapp.com",
-          projectId: "pensaoemdiaapp",
-          storageBucket: "pensaoemdiaapp.firebasestorage.app",
-          messagingSenderId: "322478168070",
-          appId: "1:322478168070:web:494318199ac307c7868b87",
-          measurementId: "G-WZ5ZGMWJJH"
-        };
-        const app = initializeApp(firebaseConfig);
-        window.auth = getAuth(app); 
-        window.db = getFirestore(app); 
-    </script>
-    <script src="./recuperar-senha.js" type="module"></script>
+    <script src="recuperar-senha.js"></script>
 </body>
 </html>
