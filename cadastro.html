@@ -15,6 +15,10 @@
         <h1>Cadastro</h1>
         <form id="cadastroForm">
             <div class="form-group">
+                <label for="cadastroNome">Nome Completo:</label>
+                <input type="text" id="cadastroNome" required>
+            </div>
+            <div class="form-group">
                 <label for="cadastroEmail">Email:</label>
                 <input type="email" id="cadastroEmail" required>
             </div>
@@ -32,24 +36,9 @@
         <p>Já tem uma conta? <a href="./index.html">Faça login aqui</a></p>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; 
-        
-        const firebaseConfig = {
-          apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
-          authDomain: "pensaoemdiaapp.firebaseapp.com",
-          projectId: "pensaoemdiaapp",
-          storageBucket: "pensaoemdiaapp.firebasestorage.app",
-          messagingSenderId: "322478168070",
-          appId: "1:322478168070:web:494318199ac307c7868b87",
-          measurementId: "G-WZ5ZGMWJJH"
-        };
-        const app = initializeApp(firebaseConfig);
-        window.auth = getAuth(app); 
-        window.db = getFirestore(app); 
-    </script>
-    <script src="./cadastro.js" type="module"></script>
+    <!-- common.js inicializa o Firebase e exporta auth/db -->
+    <script type="module" src="./common.js"></script>
+    <!-- cadastro.js importa auth/db de common.js -->
+    <script type="module" src="./cadastro.js"></script>
 </body>
 </html>
