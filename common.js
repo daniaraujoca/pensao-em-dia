@@ -1,7 +1,7 @@
 // common.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"; // Importa doc e getDoc
 
 // Suas credenciais do Firebase - PREENCHIDAS
 const firebaseConfig = {
@@ -22,17 +22,34 @@ document.addEventListener("DOMContentLoaded", function() {
     const nomeUsuarioLogado = document.getElementById("nomeUsuarioLogado");
     const logoutBtn = document.getElementById("logoutBtn");
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => { // Tornar a função async
         const currentPath = window.location.pathname;
 
         if (user) {
+            // Usuário está logado
             if (nomeUsuarioLogado) {
-                nomeUsuarioLogado.textContent = `Bem-vindo(a), ${user.email}`;
+                // Tenta buscar o nome do usuário no Firestore
+                const userProfileRef = doc(db, "users", user.uid, "profile", "data");
+                try {
+                    const docSnap = await getDoc(userProfileRef);
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        nomeUsuarioLogado.textContent = `Olá, ${userData.nome}!`; // Exibe o nome
+                    } else {
+                        console.warn("Documento de perfil do usuário não encontrado no Firestore.");
+                        nomeUsuarioLogado.textContent = `Olá, ${user.email}!`; // Fallback para email
+                    }
+                } catch (error) {
+                    console.error("Erro ao buscar perfil do usuário:", error);
+                    nomeUsuarioLogado.textContent = `Olá, ${user.email}!`; // Fallback para email em caso de erro
+                }
             }
+
             if (currentPath.endsWith('/') || currentPath.endsWith('/index.html') || currentPath.endsWith('/cadastro.html')) {
                 window.location.href = "gestao.html";
             }
         } else {
+            // Usuário NÃO está logado
             if (nomeUsuarioLogado) {
                 nomeUsuarioLogado.textContent = "";
             }
