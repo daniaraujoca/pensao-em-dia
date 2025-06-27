@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pensao em Dia - Gestão de Pensão</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40NZMfHAaXZoLkws/L+gd7/oZlYdBlglSmDqjs7BvK8o+2s7uO/D9bXv1vV2k/Fk9vF9C9F9F9F9==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40NZMfHAaXZoLkws/L+gd7/oZlYdBlglSmDqjs7BvK8o+2s7uO/D9bXv1vV2k/Fk9vF9C9F9F9F9F9==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </head>
 <body>
-     <header class="menu-superior">
+    <header class="menu-superior">
         <h1>Pensão em Dia</h1>
         <nav class="abas-navegacao">
             <a href="./cadastrofilho.html" class="aba">Cadastro de Filhos</a>
@@ -18,34 +18,86 @@
         <span id="nomeUsuarioLogado" class="bem-vindo-usuario"></span>
         <button id="logoutBtn" class="logout-btn">Sair</button>
     </header>
+
     <div class="container">
         <h1>Gestão de Pensão Alimentícia</h1>
         
-        <div id="filhoTabs">
-            </div>
+        <button id="add-filho-btn" onclick="window.location.href='cadastrofilho.html'">Adicionar Novo Filho</button>
 
-        <div id="filhosContent">
-            </div>
-
+        <div id="filhos-list" class="filhos-container">
+            <p>Carregando filhos...</p>
+        </div>
     </div>
 
-    <div id="pagamentoModal" class="modal">
+    <div id="filho-modal" class="modal">
         <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2>Registrar Pagamento</h2>
-            <form id="pagamentoForm">
-                <label for="modalValor">Valor:</label>
-                <input type="number" id="modalValor" step="0.01" required>
+            <span class="close-modal-btn" id="close-filho-modal-btn">&times;</span>
+            <h2>Editar Dados do Filho</h2>
+            <form id="filho-form">
+                <input type="hidden" id="filho-id">
+                
+                <label for="filho-nome">Nome do Filho(a):</label>
+                <input type="text" id="filho-nome" required>
 
-                <label for="modalData">Data (DD/MM/AAAA):</label>
-                <input type="text" id="modalData" placeholder="DD/MM/AAAA" maxlength="10" required>
+                <label for="filho-dataNascimento">Data de Nascimento:</label>
+                <input type="date" id="filho-dataNascimento" required>
 
-                <button type="submit">Salvar Pagamento</button>
+                <label for="filho-valorMensal">Valor Mensal da Pensão (R$):</label>
+                <input type="number" id="filho-valorMensal" step="0.01" required>
+
+                <label for="filho-diaVencimento">Dia do Vencimento (Dia do mês):</label>
+                <input type="number" id="filho-diaVencimento" min="1" max="31" required>
+
+                <h3>Anos para Cálculo:</h3>
+                <div id="anos-calculo-container" class="anos-calculo-grid">
+                    </div>
+
+                <button type="submit">Salvar Edição do Filho</button>
             </form>
+        </div>
+    </div>
+
+    <div id="pagamento-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal-btn" id="close-pagamento-modal-btn">&times;</span>
+            <h2>Registrar Pagamento</h2>
+            <form id="pagamento-form">
+                <input type="hidden" id="pagamento-filho-id"> <label for="pagamento-ano">Ano do Pagamento:</label>
+                <input type="number" id="pagamento-ano" min="2000" max="2100" required>
+
+                <label for="pagamento-mes">Mês do Pagamento:</label>
+                <select id="pagamento-mes" required>
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+
+                <label for="pagamento-valor">Valor Pago (R$):</label>
+                <input type="number" id="pagamento-valor" step="0.01" required>
+
+                <label for="pagamento-data">Data do Pagamento:</label>
+                <input type="date" id="pagamento-data" required>
+
+                <button type="submit">Adicionar Pagamento</button>
+            </form>
+
+            <h3>Pagamentos Anteriores:</h3>
+            <div id="pagamentos-list-container" class="pagamentos-anteriores">
+                <p>Nenhum pagamento registrado.</p>
+            </div>
         </div>
     </div>
 
     <script type="module" src="common.js"></script>
     <script type="module" src="gestao.js"></script>
-    </body>
+</body>
 </html>
