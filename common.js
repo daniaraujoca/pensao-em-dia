@@ -1,49 +1,56 @@
-import { signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+// common.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-    // Acessa window.auth que é definido no HTML
-    const auth = window.auth;
+const firebaseConfig = {
+    apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
+    authDomain: "pensaoemdiaapp.firebaseapp.com",
+    projectId: "pensaoemdiaapp",
+    storageBucket: "pensaoemdiaapp.firebasestorage.app",
+    messagingSenderId: "322478168070",
+    appId: "1:322478168070:web:494318199ac307c7868b87",
+    measurementId: "G-WZ5ZGMWJJH"
+};
 
-    // Garante que o nome do usuário logado seja exibido/ocultado
-    auth.onAuthStateChanged(user => {
-        const nomeUsuarioLogadoSpan = document.getElementById("nomeUsuarioLogado");
-        if (user && nomeUsuarioLogadoSpan) {
-            nomeUsuarioLogadoSpan.textContent = `Olá, ${user.displayName || user.email.split('@')[0]}!`;
-            nomeUsuarioLogadoSpan.style.display = 'inline';
-        } else if (nomeUsuarioLogadoSpan) {
-            nomeUsuarioLogadoSpan.style.display = 'none';
-        }
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app); // EXPORTAR auth
+export const db = getFirestore(app); // EXPORTAR db
 
-        // Redireciona usuários não logados de páginas restritas
-        const currentPage = window.location.pathname.split('/').pop();
-        const publicPages = ['index.html', 'cadastro.html', 'recuperar-senha.html'];
-        
-        if (!user && !publicPages.includes(currentPage)) {
-            alert("Você precisa estar logado para acessar esta página.");
-            window.location.href = "./index.html";
+// Restante do common.js (código de autenticação, etc.)
+document.addEventListener("DOMContentLoaded", function() {
+    const nomeUsuarioLogado = document.getElementById("nomeUsuarioLogado");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // Usuário está logado
+            nomeUsuarioLogado.textContent = `Bem-vindo(a), ${user.email}`;
+            // Redireciona para gestao.html se estiver em login/cadastro
+            if (window.location.pathname === '/' || window.location.pathname.includes('index.html') || window.location.pathname.includes('cadastro.html')) {
+                window.location.href = "gestao.html";
+            }
+        } else {
+            // Usuário não está logado
+            nomeUsuarioLogado.textContent = "";
+            // Redireciona para index.html se não estiver em login/cadastro
+            if (!window.location.pathname.includes('index.html') && !window.location.pathname.includes('cadastro.html')) {
+                window.location.href = "index.html";
+            }
         }
     });
 
-    // Lógica para o botão de Logout
-    const logoutButton = document.getElementById('logoutBtn');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', () => {
-            signOut(auth).then(() => { 
-                window.location.href = './index.html'; 
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                // Limpar localStorage relacionado ao usuário
+                localStorage.removeItem("usuarioLogadoEmail");
+                localStorage.removeItem("filhosPorUsuario"); // Remover os dados locais ao deslogar
+                window.location.href = "index.html"; // Redireciona para a página de login
             }).catch((error) => {
                 console.error("Erro ao fazer logout:", error);
-                alert("Ocorreu um erro ao sair. Tente novamente.");
+                alert("Erro ao fazer logout. Tente novamente.");
             });
         });
     }
-
-    // Marca a aba de navegação ativa
-    const currentPage = window.location.pathname.split('/').pop();
-    document.querySelectorAll('.abas-navegacao .aba').forEach(link => {
-        if (link.getAttribute('href') === `./${currentPage}`) { 
-            link.classList.add('ativa');
-        } else {
-            link.classList.remove('ativa');
-        }
-    });
 });
