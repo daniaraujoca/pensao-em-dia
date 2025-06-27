@@ -19,9 +19,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Tenta fazer login com email e senha usando Firebase Auth
                 await signInWithEmailAndPassword(auth, email, password);
                 
-                // Se o login for bem-sucedido, feedbackLogin será limpo e o common.js fará o redirecionamento.
+                // Se o login for bem-sucedido, feedbackLogin será limpo
                 feedbackLogin.textContent = ""; 
                 feedbackLogin.classList.remove("error", "success");
+
+                // REDIRECIONAR PARA A PÁGINA DE GESTÃO/DASHBOARD APÓS O LOGIN BEM-SUCEDIDO
+                window.location.href = "gestao.html"; // OU "dashboard.html" se você tiver uma
 
             } catch (error) {
                 // Trata erros de login
