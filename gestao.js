@@ -5,6 +5,11 @@ import { collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc } from "
 let filhos = []; // Armazenará os dados dos filhos carregados
 let activeFilhoId = null; // ID do filho cuja aba está ativa
 let currentYear = new Date().getFullYear(); // Ano atualmente exibido para o filho ativo
+let filhos = [];
+let activeFilhoId = null;
+let currentYear = new Date().getFullYear();
+// ESTA LINHA:
+let currentPayingFilhoId = null; // Para saber qual filho está sendo pago
 
 // Elementos do DOM
 const filhoTabsContainer = document.getElementById("filhoTabs"); // Contêiner das abas
