@@ -1,11 +1,10 @@
-// Importa as funções necessárias do Firestore
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", function () {
     const cadastroFilhoForm = document.getElementById("cadastroFilhoForm");
     const feedbackCadastroFilho = document.getElementById("feedbackCadastroFilho");
 
-    // Obtém as instâncias de autenticação e banco de dados do Firebase
+    // Acessa window.auth e window.db que são definidos no HTML
     const auth = window.auth;
     const db = window.db;
 
@@ -16,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
             feedbackCadastroFilho.style.display = "none";
             feedbackCadastroFilho.classList.remove("success", "error");
 
-            const user = auth.currentUser; // Obtém o usuário atualmente logado
+            const user = auth.currentUser;
             if (!user) {
                 feedbackCadastroFilho.textContent = "Você precisa estar logado para cadastrar um filho.";
                 feedbackCadastroFilho.classList.add("error");
@@ -45,24 +44,21 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             try {
-                // Adiciona um novo documento à coleção 'filhos'
-                // O UID do usuário garante que cada filho está associado ao seu criador
                 const docRef = await addDoc(collection(db, "filhos"), {
-                    userId: user.uid, // UID do usuário logado
+                    userId: user.uid,
                     nome: nomeFilho,
-                    dataNascimento: dataNascimento, // Salva como string YYYY-MM-DD
+                    dataNascimento: dataNascimento, 
                     valorMensal: valorMensal,
                     diaVencimento: diaVencimento,
-                    criadoEm: new Date(), // Timestamp de criação
-                    pagamentos: [] // Inicializa uma array vazia para pagamentos
+                    criadoEm: new Date(), 
+                    pagamentos: [] 
                 });
 
                 feedbackCadastroFilho.textContent = `Filho(a) ${nomeFilho} cadastrado(a) com sucesso!`;
                 feedbackCadastroFilho.classList.add("success");
                 feedbackCadastroFilho.style.display = "block";
-                cadastroFilhoForm.reset(); // Limpa o formulário
+                cadastroFilhoForm.reset();
 
-                // Redireciona para a página de gestão após o cadastro
                 setTimeout(() => {
                     window.location.href = "./gestao.html";
                 }, 1500);
