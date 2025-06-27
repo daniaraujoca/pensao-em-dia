@@ -4,7 +4,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// Sua configuração do Firebase (substituída pelos seus dados reais da imagem)
+// Sua configuração do Firebase (obtida diretamente das informações fornecidas por você)
 const firebaseConfig = {
   apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4",
   authDomain: "pensaoemdiaapp.firebaseapp.com",
@@ -27,14 +27,20 @@ export { app, auth, db };
 // Esta função agora GARANTE que o perfil do usuário existe no Firestore
 auth.onAuthStateChanged(async (user) => {
     const navLinks = document.getElementById("navLinks");
-    const loginLink = document.getElementById("loginLink");
-    const logoutLink = document.getElementById("logoutLink");
+    // Ajustado para os IDs do seu HTML, se existirem fora da nav
+    const loginLink = document.getElementById("loginLink"); 
+    const logoutLink = document.getElementById("logoutBtn"); // Usando o ID do seu botão "Sair"
+
+    // Elemento para exibir o nome do usuário logado
+    const nomeUsuarioLogado = document.getElementById("nomeUsuarioLogado");
+
 
     if (user) {
         // Usuário logado
         if (loginLink) loginLink.style.display = "none";
         if (logoutLink) logoutLink.style.display = "block";
         if (navLinks) navLinks.classList.add("logged-in"); // Adiciona classe para estilizar links logado
+        if (nomeUsuarioLogado) nomeUsuarioLogado.textContent = `Bem-vindo(a), ${user.email}`;
 
         const userProfileRef = doc(db, "users", user.uid);
         try {
@@ -78,6 +84,7 @@ auth.onAuthStateChanged(async (user) => {
         if (loginLink) loginLink.style.display = "block";
         if (logoutLink) logoutLink.style.display = "none";
         if (navLinks) navLinks.classList.remove("logged-in");
+        if (nomeUsuarioLogado) nomeUsuarioLogado.textContent = ''; // Limpa o nome do usuário
 
         // Redireciona para a página inicial (ou login) se tentar acessar uma página protegida
         const protectedPages = ["dashboard.html", "gestao.html", "cadastrofilho.html", "dicas.html", "perfil.html"];
@@ -91,8 +98,8 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 // Lógica de Logout
-if (document.getElementById("logoutLink")) {
-    document.getElementById("logoutLink").addEventListener("click", async (e) => {
+if (document.getElementById("logoutBtn")) { // Usando o ID do seu botão "Sair"
+    document.getElementById("logoutBtn").addEventListener("click", async (e) => {
         e.preventDefault();
         try {
             await signOut(auth);
