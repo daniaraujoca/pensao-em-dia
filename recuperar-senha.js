@@ -1,8 +1,11 @@
+// Importa a função específica do Firebase Auth para envio de e-mail de redefinição de senha
+import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
 document.addEventListener("DOMContentLoaded", function () {
     const recuperarSenhaForm = document.getElementById("recuperarSenhaForm");
     const feedbackRecuperacao = document.getElementById("feedbackRecuperacao");
 
-    // Certifica-se de que o objeto 'auth' do Firebase está disponível globalmente.
+    // Obtém a instância de autenticação globalmente
     const auth = window.auth;
 
     if (recuperarSenhaForm) {
@@ -21,23 +24,19 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Envia o e-mail de redefinição de senha usando o Firebase
-            auth.sendPasswordResetEmail(emailRecuperacao)
+            // Usa a função importada para enviar o e-mail de redefinição
+            sendPasswordResetEmail(auth, emailRecuperacao) // Note: auth é o primeiro argumento
                 .then(() => {
-                    // E-mail de redefinição enviado com sucesso.
-                    // A mensagem é genérica por segurança (para não informar se o e-mail existe ou não).
                     feedbackRecuperacao.textContent = "Se o e-mail estiver cadastrado, um link para redefinir sua senha foi enviado para ele.";
                     feedbackRecuperacao.classList.add("success");
                     feedbackRecuperacao.style.display = "block";
                     recuperarSenhaForm.reset();
                 })
                 .catch((error) => {
-                    // Ocorreu um erro. A mensagem para o usuário pode ser a mesma por segurança.
-                    // Para depuração, você pode logar o erro.
                     console.error("Erro ao enviar e-mail de redefinição Firebase:", error.code, error.message);
                     
                     feedbackRecuperacao.textContent = "Se o e-mail estiver cadastrado, um link para redefinir sua senha foi enviado para ele.";
-                    feedbackRecuperacao.classList.add("success"); // Mantemos a classe de sucesso por segurança
+                    feedbackRecuperacao.classList.add("success");
                     feedbackRecuperacao.style.display = "block";
                 });
         });
