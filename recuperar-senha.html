@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="login-container"> <h2>Recuperar Senha</h2>
+    <div class="login-container">
+        <h2>Recuperar Senha</h2>
         <form id="recuperarSenhaForm">
             <p>Informe seu e-mail para recuperar o acesso.</p>
             <label for="emailRecuperacao">Email:</label>
@@ -16,11 +17,28 @@
             <button type="submit">Enviar Link de Recuperação</button>
         </form>
         <div class="link-login">
-            <p>Lembrou? <a href="index.html">Voltar para o Login</a></p>
+            <p>Lembrou? <a href="./index.html">Voltar para o Login</a></p>
         </div>
         <div id="feedbackRecuperacao" class="feedback-message" style="display: none;"></div>
     </div>
 
-    <script src="recuperar-senha.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4", // SEU API KEY
+          authDomain: "pensaoemdiaapp.firebaseapp.com",
+          projectId: "pensaoemdiaapp",
+          storageBucket: "pensaoemdiaapp.firebasestorage.app",
+          messagingSenderId: "322478168070",
+          appId: "1:322478168070:web:494318199ac307c7868b87",
+          measurementId: "G-WZ5ZGMWJJH"
+        };
+        const app = initializeApp(firebaseConfig);
+        window.auth = getAuth(app); 
+    </script>
+    
+    <script src="./recuperar-senha.js" type="module"></script>
 </body>
 </html>
