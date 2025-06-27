@@ -156,7 +156,7 @@ async function carregarFilhos() {
 
         for (const docFilho of querySnapshot.docs) {
             const filho = { id: docFilho.id, ...docFilho.data() };
-            const dataNascimento = filho.dataNascimento ? filho.dataNascimento.toDate() : null; // Converte Timestamp para Date
+            const dataNascimento = filho.dataNascimento ? (filho.dataNascimento instanceof Date ? filho.dataNascimento : filho.dataNascimento.toDate()) : null; // Lida com Date ou Timestamp
 
             const hoje = new Date();
             let idade = dataNascimento ? hoje.getFullYear() - dataNascimento.getFullYear() : 'N/A';
