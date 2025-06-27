@@ -5,8 +5,9 @@ document.addEventListener("DOMContentLoaded", function () {
         loginForm.addEventListener("submit", function (e) {
             e.preventDefault();
 
-            const email = document.getElementById("emailLogin").value.trim().toLowerCase();
-            const senha = document.getElementById("senhaLogin").value;
+            // IDs dos elementos de input corrigidos para 'email' e 'password'
+            const email = document.getElementById("email").value.trim().toLowerCase();
+            const senha = document.getElementById("password").value;
 
             const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
 
