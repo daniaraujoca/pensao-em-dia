@@ -1,63 +1,44 @@
-// Importa a função específica para login com e-mail e senha do Firebase Auth
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
     const loginForm = document.getElementById("loginForm");
-    const feedbackMessage = document.getElementById("feedbackMessage"); 
+    const feedbackLogin = document.getElementById("feedbackLogin");
 
-    // Obtém a instância de autenticação globalmente (definida no index.html)
+    // Acessa window.auth que é definido no HTML
     const auth = window.auth;
 
     if (loginForm) {
-        loginForm.addEventListener("submit", function (e) {
+        loginForm.addEventListener("submit", async function(e) {
             e.preventDefault();
 
-            const email = document.getElementById("email").value.trim().toLowerCase();
-            const password = document.getElementById("password").value; 
+            feedbackLogin.style.display = "none";
+            feedbackLogin.classList.remove("success", "error");
 
-            feedbackMessage.style.display = "none";
-            feedbackMessage.classList.remove("success", "error");
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
 
-            // Usa a função importada para fazer o login
-            signInWithEmailAndPassword(auth, email, password) // Note: auth é o primeiro argumento
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    localStorage.setItem("usuarioLogadoEmail", user.email);
-                    localStorage.setItem("usuarioLogadoNome", user.displayName || user.email.split('@')[0]);
-
-                    feedbackMessage.textContent = "Login realizado com sucesso!";
-                    feedbackMessage.classList.add("success");
-                    feedbackMessage.style.display = "block";
-
-                    setTimeout(() => {
-                        window.location.href = "./gestao.html"; // Caminho corrigido
-                    }, 1000);
-
-                })
-                .catch((error) => {
-                    let errorMessage = "Erro ao fazer login. Verifique seu e-mail e senha.";
-
-                    switch (error.code) {
-                        case 'auth/user-not-found':
-                            errorMessage = "Nenhum usuário encontrado com este e-mail.";
-                            break;
-                        case 'auth/wrong-password':
-                            errorMessage = "Senha incorreta.";
-                            break;
-                        case 'auth/invalid-email':
-                            errorMessage = "O formato do e-mail é inválido.";
-                            break;
-                        case 'auth/too-many-requests':
-                            errorMessage = "Muitas tentativas de login. Tente novamente mais tarde.";
-                            break;
-                        default:
-                            console.error("Erro de login Firebase:", error.code, error.message);
-                            errorMessage = "Ocorreu um erro inesperado. Tente novamente.";
-                    }
-                    feedbackMessage.textContent = errorMessage;
-                    feedbackMessage.classList.add("error");
-                    feedbackMessage.style.display = "block";
-                });
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                feedbackLogin.textContent = "Login bem-sucedido! Redirecionando...";
+                feedbackLogin.classList.add("success");
+                feedbackLogin.style.display = "block";
+                setTimeout(() => {
+                    window.location.href = "./gestao.html"; 
+                }, 1500); 
+            } catch (error) {
+                let errorMessage = "Erro no login. Verifique suas credenciais.";
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = "Email ou senha inválidos.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Formato de email inválido.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = "Muitas tentativas de login. Tente novamente mais tarde.";
+                }
+                console.error("Erro de login:", error);
+                feedbackLogin.textContent = errorMessage;
+                feedbackLogin.classList.add("error");
+                feedbackLogin.style.display = "block";
+            }
         });
     }
 });
