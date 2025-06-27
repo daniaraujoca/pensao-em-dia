@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Elementos do seu HTML (usando IDs que já existiam ou inferindo pela estrutura)
     const filhoTabsContainer = document.getElementById("filhoTabs");
-    const filhosContentContainer = document.getElementById("filhosContent");
+    const filhosContentContainer = document.getElementById("filhosContent"); // Agora usaremos este como o container do conteúdo
 
     // Modal de Pagamento (os IDs do modal que você já tem)
     const pagamentoModal = document.getElementById("pagamentoModal");
@@ -49,7 +49,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         filhoTabsContainer.innerHTML = ""; // Limpa as abas
         filhosContentContainer.innerHTML = ""; // Limpa o conteúdo principal
         try {
-            // Usando as funções importadas diretamente
             const q = query(collection(db, "filhos"), where("userId", "==", userId));
             const querySnapshot = await getDocs(q);
             const filhos = [];
@@ -58,13 +57,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
 
             if (filhos.length === 0) {
-                filhosContentContainer.innerHTML = "<p>Nenhum filho cadastrado. <a href='./cadastrofilho.html'>Cadastre um filho</a> para começar.</p>";
+                filhosContentContainer.innerHTML = "<p class='sem-filhos-gestao'>Nenhum filho cadastrado. <a href='./cadastrofilho.html'>Cadastre um filho</a> para começar a gestão.</p>";
                 return;
             }
 
             filhos.forEach((filho, index) => {
                 const tab = document.createElement("button");
-                tab.classList.add("filho-tab");
+                tab.classList.add("tab-button"); // CORRIGIDO: Agora usa a classe do CSS
                 tab.textContent = filho.nome;
                 tab.setAttribute('data-filho-id', filho.id);
                 tab.addEventListener("click", () => showFilhoDetails(filho.id, filhos));
@@ -83,8 +82,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Função para exibir detalhes de um filho
     async function showFilhoDetails(filhoId, allFilhos) {
-        filhoTabsContainer.querySelectorAll(".filho-tab").forEach(btn => btn.classList.remove("active"));
-        document.querySelector(`.filho-tab[data-filho-id="${filhoId}"]`).classList.add("active");
+        filhoTabsContainer.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+        document.querySelector(`.tab-button[data-filho-id="${filhoId}"]`).classList.add("active");
 
         activeFilhoData = allFilhos.find(f => f.id === filhoId);
         if (!activeFilhoData) {
@@ -94,8 +93,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         currentFilhoId = filhoId;
 
+        // CORRIGIDO: Usa a classe 'filho-bloco' e 'meses-grid' do CSS
         filhosContentContainer.innerHTML = `
-            <div class="filho-info">
+            <div class="filho-bloco"> 
                 <h3>Filho(a): <span class="filho-nome-header">${activeFilhoData.nome}</span></h3>
                 <p><span class="filho-data-nascimento">Data de Nascimento: ${formatarData(activeFilhoData.dataNascimento)}</span></p>
                 <p><span class="filho-valor-mensal">Valor Mensal: R$ ${activeFilhoData.valorMensal.toFixed(2)}</span></p>
@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 <p><span class="total-devido-display">Total Devido: R$ 0.00</span></p>
                 <p><span class="total-pago-display">Total Pago: R$ 0.00</span></p>
                 
-                <div class="montante-devedor-box montante-devedor">Montante Devedor: R$ 0.00</div>
+                <div class="montante-devedor montante-devedor-box">Montante Devedor: R$ 0.00</div>
 
                 <button class="action-btn register-payment-btn">Registrar Pagamento</button>
                 <button class="action-btn delete-btn delete-filho-btn">Excluir Filho</button>
@@ -117,14 +117,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             </div>
 
             <div class="year-options">
-                <input type="checkbox" class="enable-year-checkbox">
+                <input type="checkbox" class="enable-year-checkbox" id="enable-year-checkbox">
                 <label for="enable-year-checkbox">Habilitar <span class="enable-year-text">${currentDisplayYear}</span> para cálculo de dívida de <span class="enable-filho-name-for-checkbox">${activeFilhoData.nome}</span></label>
                 <button class="action-btn hide-months-btn">Esconder Meses (${currentDisplayYear})</button>
             </div>
 
             <h3>Histórico de Pagamentos</h3>
-            <div class="mes-cards-grid mes-cards-container">
-                </div>
+            <div class="meses-grid"> </div>
         `;
         
         addEventListenersToDynamicContent();
@@ -137,7 +136,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const deleteFilhoBtn = filhosContentContainer.querySelector(".delete-filho-btn");
         const prevYearBtn = filhosContentContainer.querySelector(".prev-year-btn");
         const nextYearBtn = filhosContentContainer.querySelector(".next-year-btn");
-        const enableYearCheckbox = filhosContentContainer.querySelector(".enable-year-checkbox");
+        const enableYearCheckbox = hijosContentContainer.querySelector(".enable-year-checkbox");
         const hideMonthsBtn = filhosContentContainer.querySelector(".hide-months-btn");
 
 
@@ -167,10 +166,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
         }
         if (nextYearBtn) {
-            nextYearBtn.addEventListener('click', () => {
-                currentDisplayYear++;
-                showFilhoDetails(currentFilhoId, [activeFilhoData]);
-            });
+            nextYearYear++;
+            showFilhoDetails(currentFilhoId, [activeFilhoData]);
         }
         if (enableYearCheckbox) {
             enableYearCheckbox.addEventListener('change', () => {
@@ -178,14 +175,14 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
         }
         if (hideMonthsBtn) {
-            hideMonthsBtn.addEventListener('click', () => {
-                const mesCardsContainer = hijosContentContainer.querySelector(".mes-cards-container");
-                if (mesCardsContainer) {
+            const mesCardsContainer = filhosContentContainer.querySelector(".meses-grid"); // CORRIGIDO: Referencia a classe correta
+            if (mesCardsContainer) {
+                hideMonthsBtn.addEventListener('click', () => {
                     mesCardsContainer.classList.toggle('hidden');
                     hideMonthsBtn.textContent = mesCardsContainer.classList.contains('hidden') ? 
                         `Mostrar Meses (${currentDisplayYear})` : `Esconder Meses (${currentDisplayYear})`;
-                }
-            });
+                });
+            }
         }
     }
 
@@ -243,18 +240,25 @@ document.addEventListener("DOMContentLoaded", async function () {
         const montanteDevedor = totalDevidoAno - totalPagoAno;
         if (montanteDevedorDisplay) {
             montanteDevedorDisplay.textContent = `Montante Devedor: R$ ${montanteDevedor.toFixed(2)}`;
-            montanteDevedorDisplay.style.backgroundColor = montanteDevedor > 0 ? '#dc3545' : '#28a745'; 
-            montanteDevedorDisplay.style.color = 'white';
+            // CORRIGIDO: Usando as classes do CSS para montante-devedor
+            montanteDevedorDisplay.classList.remove('verde', 'amarelo', 'vermelho'); // Limpa classes anteriores
+            if (montanteDevedor > 0) {
+                montanteDevedorDisplay.classList.add('vermelho');
+            } else if (montanteDevedor < 0) {
+                montanteDevedorDisplay.classList.add('verde'); // Se estiver negativo (pago a mais)
+            } else {
+                montanteDevedorDisplay.classList.add('verde'); // Se estiver zerado
+            }
         }
     }
 
 
     // Renderiza os cards dos meses para o ano atual
     function displayMonthsForYear(filho, ano) {
-        const mesCardsContainer = filhosContentContainer.querySelector(".mes-cards-container");
-        if (!mesCardsContainer) return; 
+        const mesesGridContainer = filhosContentContainer.querySelector(".meses-grid"); // CORRIGIDO: Usa a classe do CSS
+        if (!mesesGridContainer) return; 
 
-        mesCardsContainer.innerHTML = '';
+        mesesGridContainer.innerHTML = '';
         const meses = [
             "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
@@ -273,33 +277,42 @@ document.addEventListener("DOMContentLoaded", async function () {
                 pagamentosDoMes.sort((a, b) => a.timestamp - b.timestamp).forEach(p => {
                     saldoMes += p.valor;
                     pagamentosExibicao += `
-                        <p>R$ ${p.valor.toFixed(2)} - ${formatarData(p.data)} 
-                            <i class="fas fa-times delete-payment-month-icon" 
+                        <div class="pagamento-item">
+                            R$ ${p.valor.toFixed(2)} - ${formatarData(p.data)} 
+                            <button class="btn-excluir-pagamento" 
                                 data-filho-id="${filho.id}" 
-                                data-timestamp="${p.timestamp}"></i>
-                        </p>`;
+                                data-timestamp="${p.timestamp}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>`;
                 });
             }
             
-            const cardClass = saldoMes >= 0 ? 'mes-pago' : 'mes-devedor'; 
+            // CORRIGIDO: Usa as classes do CSS para a cor da caixa do mês e o nome do mês
+            let cardClass = 'nao-pago'; // Padrão
+            let mesNomeClass = 'nao-pago';
+            if (saldoMes >= 0) {
+                cardClass = 'pago-completo';
+                mesNomeClass = 'pago-completo';
+            } else if (saldoMes > -filho.valorMensal) {
+                cardClass = 'pago-parcial';
+                mesNomeClass = 'pago-parcial';
+            }
+
 
             const cardHTML = `
-                <div class="mes-card ${cardClass}">
-                    <h4>${nomeMes} ${ano}</h4>
-                    <p>Valor Mensal: R$ ${filho.valorMensal.toFixed(2)}</p>
+                <div class="mes-box ${cardClass}"> <h4 class="mes-nome ${mesNomeClass}">${nomeMes} ${ano}</h4> <p>Valor Mensal: R$ ${filho.valorMensal.toFixed(2)}</p>
                     <p>Pagamentos:</p>
-                    <div class="payments-list">${pagamentosExibicao || 'Nenhum'}</div>
-                    <p>Saldo do Mês: R$ ${saldoMes.toFixed(2)}</p>
-                    <button class="add-payment-month-btn" 
-                            data-filho-id="${filho.id}" 
+                    <div class="pagamentos-lista">${pagamentosExibicao || 'Nenhum'}</div> <p>Saldo do Mês: R$ ${saldoMes.toFixed(2)}</p>
+                    <button class="adicionar-pagamento" data-filho-id="${filho.id}" 
                             data-mes="${mesNumero}" 
                             data-ano="${ano}">Adicionar Pagamento</button>
                 </div>
             `;
-            mesCardsContainer.insertAdjacentHTML('beforeend', cardHTML);
+            mesesGridContainer.insertAdjacentHTML('beforeend', cardHTML);
         });
 
-        mesCardsContainer.querySelectorAll(".add-payment-month-btn").forEach(btn => {
+        mesesGridContainer.querySelectorAll(".adicionar-pagamento").forEach(btn => {
             btn.addEventListener("click", (e) => {
                 currentFilhoId = e.target.dataset.filhoId;
                 const mesDoCard = e.target.dataset.mes;
@@ -315,10 +328,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
         });
 
-        mesCardsContainer.querySelectorAll(".delete-payment-month-icon").forEach(icon => {
-            icon.addEventListener("click", (e) => {
+        mesesGridContainer.querySelectorAll(".btn-excluir-pagamento").forEach(btn => { // CORRIGIDO: Usa a classe do CSS
+            btn.addEventListener("click", (e) => {
                 const idFilho = e.target.dataset.filhoId;
-                const timestampPagamento = parseInt(e.target.dataset.timestamp);
+                // Procura o elemento pai <i> ou o próprio botão se for o caso
+                const targetElement = e.target.tagName === 'I' ? e.target.closest('.btn-excluir-pagamento') : e.target;
+                const timestampPagamento = parseInt(targetElement.dataset.timestamp);
+
                 if (confirm("Tem certeza que deseja excluir este pagamento?")) {
                     deletePagamento(idFilho, timestampPagamento);
                 }
@@ -334,8 +350,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (enableYearText) enableYearText.textContent = currentDisplayYear;
         if (enableFilhoNameForCheckbox) enableFilhoNameForCheckbox.textContent = filho.nome;
         if (hideMonthsBtn) {
-            const mesCardsCurrentContainer = filhosContentContainer.querySelector(".mes-cards-container");
-            hideMonthsBtn.textContent = mesCardsCurrentContainer.classList.contains('hidden') ? 
+            const mesesGridCurrentContainer = filhosContentContainer.querySelector(".meses-grid");
+            hideMonthsBtn.textContent = mesesGridCurrentContainer.classList.contains('hidden') ? 
                 `Mostrar Meses (${currentDisplayYear})` : `Esconder Meses (${currentDisplayYear})`;
         }
 
@@ -382,7 +398,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             };
 
             try {
-                // Usamos as funções importadas diretamente
                 const filhoRef = doc(db, "filhos", currentFilhoId);
                 await updateDoc(filhoRef, {
                     pagamentos: arrayUnion(novoPagamento)
@@ -391,7 +406,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                 alert("Pagamento registrado com sucesso!");
                 pagamentoModal.style.display = "none";
                 
-                // Recarrega os dados do filho específico e atualiza a interface
                 const q = query(collection(db, "filhos"), where("userId", "==", auth.currentUser.uid), where("__name__", "==", currentFilhoId));
                 const updatedFilhoSnap = await getDocs(q);
                 if (!updatedFilhoSnap.empty) {
