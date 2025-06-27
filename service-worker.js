@@ -1,6 +1,6 @@
-const CACHE_NAME = 'pensao-em-dia-cache-v2'; // Aumente a versão para forçar atualização
+const CACHE_NAME = 'pensao-em-dia-cache-v3'; // Aumente a versão para forçar atualização
 const urlsToCache = [
-  './', // Representa a raiz do seu aplicativo (ex: /pensao-em-dia/)
+  './', 
   './index.html',
   './cadastro.html',
   './cadastrofilho.html',
@@ -13,15 +13,15 @@ const urlsToCache = [
   './cadastrofilho.js',
   './gestao.js',
   './common.js',
-  './script.js', // Mantenha se este arquivo existir e for usado
+  './script.js', 
   './recuperar-senha.js',
   './manifest.json',
-  // Caminhos corrigidos para os ícones
   './icons/icon-192x192.png',
   './icons/icon-512x512.png',
-  // Adicionar as URLs dos SDKs do Firebase para cache offline (opcional, mas recomendado)
+  // Adicionar as URLs dos SDKs do Firebase para cache offline (recomendado)
   'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js'
+  'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js',
+  'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js' // NOVO: Firestore SDK
 ];
 
 self.addEventListener('install', event => {
