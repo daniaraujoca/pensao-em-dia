@@ -28,17 +28,44 @@
         <div id="feedbackMessage" class="feedback-message" style="display: none;"></div>
     </div>
 
-    <script src="login.js"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('service-worker.js').then(function(registration) {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          }, function(err) {
-            console.log('ServiceWorker registration failed: ', err);
+    <script type="module">
+        // Importa as funções necessárias do SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        // Importe getAnalytics se for usar e se tiver habilitado:
+        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
+
+        // Sua configuração do Firebase - COLOQUE AQUI A CONFIGURAÇÃO EXATA QUE O FIREBASE TE DEU!
+        const firebaseConfig = {
+          apiKey: "AIzaSyADrEtzjmdX5A2yq_S5Hp0QzojAgWlClU4",
+          authDomain: "pensaoemdiaapp.firebaseapp.com",
+          projectId: "pensaoemdiaapp",
+          storageBucket: "pensaoemdiaapp.firebasestorage.app",
+          messagingSenderId: "322478168070",
+          appId: "1:322478168070:web:494318199ac307c7868b87",
+          measurementId: "G-WZ5ZGMWJJH" // Mantenha se o Analytics estiver ativado
+        };
+
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        // Inicializa o Analytics se estiver usando:
+        // const analytics = getAnalytics(app);
+
+        // Exporte o módulo de autenticação para ser acessível em outros scripts
+        window.auth = getAuth(app); // Torna 'auth' global para que seus outros scripts possam usá-lo
+
+        // O código do Service Worker pode permanecer aqui ou em seu próprio bloco
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function() {
+            navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, function(err) {
+              console.log('ServiceWorker registration failed: ', err);
+            });
           });
-        });
-      }
+        }
     </script>
-</body>
+    
+    <script src="login.js"></script>
+    </body>
 </html>
