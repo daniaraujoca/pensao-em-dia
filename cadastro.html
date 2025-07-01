@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cadastro de Usuário - Pensão em Dia</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="cadastro-container">
+        <h2>Cadastro de Novo Usuário</h2>
+        <form id="cadastroForm">
+            <label for="cadastroNome">Nome</label>
+            <input type="text" id="cadastroNome" name="nome" placeholder="Seu nome" required />
+
+            <label for="cadastroSobrenome">Sobrenome</label>
+            <input type="text" id="cadastroSobrenome" name="sobrenome" placeholder="Seu sobrenome" required />
+
+            <label for="cadastroEmail">E-mail</label>
+            <input type="email" id="cadastroEmail" name="email" placeholder="seu@email.com" required />
+
+            <label for="cadastroSenha">Senha</label>
+            <input type="password" id="cadastroSenha" name="senha" placeholder="Senha" required />
+
+            <label for="cadastroConfirmarSenha">Confirmar Senha</label>
+            <input type="password" id="cadastroConfirmarSenha" name="confirmarSenha" placeholder="Confirmar senha" required />
+
+            <button type="submit">Cadastrar</button>
+        </form>
+        <div class="link-login">
+            <p>Já tem conta? <a href="./index.html">Faça Login aqui</a></p>
+        </div>
+    </div>
+    <script type="module" src="common.js"></script>
+    <script type="module" src="cadastro.js"></script>
+</body>
+</html>

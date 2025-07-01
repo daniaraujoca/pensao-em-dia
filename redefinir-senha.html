@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redefinir Palavra-Passe - Pensão em Dia</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="login-container"> <!-- Reutiliza o estilo do login-container para consistência -->
+        <h2>Redefinir Palavra-Passe</h2>
+        <p>Por favor, insira a sua nova palavra-passe.</p>
+        <form id="redefinirSenhaForm">
+            <label for="novaSenha">Nova Palavra-Passe:</label>
+            <input type="password" id="novaSenha" name="novaSenha" required />
+
+            <label for="confirmarSenha">Confirmar Palavra-Passe:</label>
+            <input type="password" id="confirmarSenha" name="confirmarSenha" required />
+
+            <button type="submit">Redefinir Palavra-Passe</button>
+        </form>
+        <div id="feedbackRedefinicao" class="feedback-message" style="display: none;"></div>
+        <div class="link-voltar">
+            <p><a href="index.html">Voltar para o Login</a></p>
+        </div>
+    </div>
+    <script type="module" src="common.js"></script>
+    <script type="module" src="redefinir-senha.js"></script> <!-- Este será o próximo script a ser criado -->
+</body>
+</html>

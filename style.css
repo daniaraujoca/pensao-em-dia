@@ -1,0 +1,735 @@
+/* Estilos Gerais */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    color: #23bb86; /* Verde principal */
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Estilos para Formulários (Login, Cadastro de Usuário, Cadastro de Filhos) */
+.login-container,
+.cadastro-container,
+.container form { /* Aplica a campos de formulário genéricos */
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-container h2,
+.cadastro-container h2 {
+    color: #23bb86; /* Verde principal */
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="number"],
+select {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box; /* Garante que padding não adicione largura */
+}
+
+button[type="submit"],
+.btn-salvar,
+.logout-btn,
+.adicionar-pagamento {
+    background-color: #1a8b5e; /* Um verde mais escuro para botões */
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover,
+.btn-salvar:hover,
+.logout-btn:hover,
+.adicionar-pagamento:hover {
+    background-color: #156d4a; /* Um pouco mais escuro no hover */
+}
+
+.link-cadastro,
+.link-login {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.link-cadastro a,
+.link-login a {
+    color: #23bb86; /* Verde principal para links */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.link-cadastro a:hover,
+.link-login a:hover {
+    text-decoration: underline;
+}
+
+.feedback-message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #e6f7ee; /* Verde muito claro para mensagens */
+    color: #1a8b5e; /* Verde mais escuro para o texto da mensagem */
+    border: 1px solid #c9edd9;
+    text-align: center;
+}
+
+/* Estilos do Menu Superior (Header) */
+.menu-superior {
+    background-color: #23bb86; /* Verde principal para o cabeçalho */
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Permite que os itens quebrem a linha em telas menores */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.menu-superior h1 {
+    margin: 0;
+    font-size: 24px;
+    flex-shrink: 0; /* Impede que o título encolha */
+    color: #0e4a32; /* Um tom de verde bem mais escuro para o título */
+}
+
+.abas-navegacao {
+    display: flex;
+    gap: 20px;
+    flex-grow: 1; /* Permite que o nav ocupe espaço */
+    justify-content: center; /* Centraliza as abas */
+    margin: 0 20px; /* Espaço nas laterais */
+}
+
+.abas-navegacao .aba {
+    color: white;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.abas-navegacao .aba:hover {
+    background-color: #1a8b5e; /* Verde mais escuro no hover */
+}
+
+.abas-navegacao .aba.ativa {
+    background-color: #156d4a; /* Verde ainda mais escuro para aba ativa */
+    font-weight: bold;
+}
+
+.bem-vindo-usuario {
+    color: white;
+    font-weight: bold;
+    margin-right: 20px;
+    white-space: nowrap; /* Evita que o texto quebre */
+}
+
+.logout-btn {
+    background-color: #dc3545; /* Mantido vermelho para ação de sair */
+    width: auto; /* Anula o width: 100% de buttons */
+    padding: 8px 15px;
+    font-size: 14px;
+    margin-top: 0;
+    flex-shrink: 0; /* Impede que o botão encolha */
+}
+
+.logout-btn:hover {
+    background-color: #c82333;
+}
+
+/* Media Queries para responsividade do cabeçalho */
+@media (max-width: 768px) {
+    .menu-superior {
+        flex-direction: column; /* Empilha os itens verticalmente */
+        text-align: center;
+        padding: 10px;
+    }
+
+    .menu-superior h1 {
+        margin-bottom: 10px;
+    }
+
+    .abas-navegacao {
+        flex-direction: column; /* Empilha as abas verticalmente */
+        gap: 10px;
+        width: 100%;
+        margin: 10px 0;
+    }
+
+    .abas-navegacao .aba {
+        width: calc(100% - 30px); /* Ajusta a largura das abas */
+        padding: 10px;
+        text-align: center;
+    }
+
+    .bem-vindo-usuario {
+        margin: 10px 0;
+        width: 100%;
+        text-align: center;
+    }
+
+    .logout-btn {
+        width: calc(100% - 30px);
+        margin: 10px 0;
+    }
+}
+
+/* Estilos para a página de Cadastro de Filhos */
+.form-section,
+.lista-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background-color: #fdfdfd;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.filho-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.info-filho strong {
+    display: block;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.info-filho span {
+    display: block;
+    color: #555;
+    font-size: 0.9em;
+}
+
+.botoes-acao button {
+    background-color: #ffc107; /* Amarelo para editar */
+    color: #333;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85em;
+    margin-left: 10px;
+    transition: background-color 0.3s ease;
+    width: auto; /* Anula o width: 100% de buttons */
+}
+
+.botoes-acao button.btn-excluir {
+    background-color: #dc3545; /* Vermelho para excluir */
+    color: white;
+}
+
+.botoes-acao button:hover {
+    filter: brightness(0.9);
+}
+
+.sem-filhos {
+    text-align: center;
+    color: #777;
+    padding: 20px;
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+/* Estilos para a página de Gestão de Pensão */
+.filho-bloco {
+    background-color: #fdfdfd;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filho-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.filho-header h2 {
+    margin: 0;
+    color: #23bb86; /* Verde principal */
+    font-size: 1.5em;
+}
+
+.toggle-meses-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: auto;
+    font-size: 0.9em;
+}
+
+.toggle-meses-btn:hover {
+    background-color: #5a6268;
+}
+
+.filho-detalhes p {
+    margin: 5px 0;
+    color: #555;
+}
+
+.montante-devedor {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 5px;
+    text-align: center;
+    color: white;
+}
+
+.montante-devedor.verde {
+    background-color: #23bb86; /* Verde principal para sucesso */
+}
+
+.montante-devedor.amarelo {
+    background-color: #ffc107; /* Amarelo para atenção */
+    color: #333; /* Texto escuro para contraste */
+}
+
+.montante-devedor.vermelho {
+    background-color: #dc3545; /* Vermelho para perigo */
+}
+
+.meses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.meses-grid.hidden {
+    display: none;
+}
+
+/* Estilos para a caixa do mês */
+.mes-box {
+    background-color: #f9f9f9; /* Fundo padrão mais claro */
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 150px;
+    transition: background-color 0.3s ease; /* Transição suave para a cor */
+}
+
+/* Novas classes para a cor da caixa do mês */
+.mes-box.pago-completo {
+    background-color: #e6f7ee; /* Verde muito claro */
+    border-color: #c9edd9; /* Borda um pouco mais escura */
+}
+
+.mes-box.pago-parcial {
+    background-color: #fff9e6; /* Amarelo muito claro */
+    border-color: #ffeeb3; /* Borda um pouco mais escura */
+}
+
+.mes-box.nao-pago {
+    background-color: #ffe6e6; /* Vermelho muito claro */
+    border-color: #ffc9c9; /* Borda um pouco mais escura */
+}
+
+.mes-nome {
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed #e0e0e0;
+    /* A cor do texto do mês pode ser mantida ou removida, pois a caixa já indicará o status */
+    /* Removi as cores de texto aqui, pois a cor da caixa já é forte o suficiente */
+    color: #333; /* Cor padrão para o texto do mês */
+}
+
+/* Mantendo as classes de cor de texto caso você prefira um contraste no texto */
+.mes-nome.pago-completo {
+    color: #1a8b5e; /* Um verde escuro para o texto */
+}
+.mes-nome.pago-parcial {
+    color: #c79200; /* Um amarelo/laranja escuro para o texto */
+}
+.mes-nome.nao-pago {
+    color: #a00000; /* Um vermelho escuro para o texto */
+}
+
+
+.pagamentos-lista {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px 0;
+    flex-grow: 1;
+}
+
+.pagamento-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.7); /* Fundo semi-transparente para o item de pagamento */
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Sutil sombra para destacar */
+}
+
+.pagamento-item button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    margin-left: 5px;
+    color: #1a8b5e;
+    padding: 0 3px;
+    width: auto;
+}
+
+.pagamento-item button:hover {
+    color: #156d4a;
+}
+
+.btn-excluir-pagamento {
+    color: #dc3545 !important;
+}
+
+.btn-excluir-pagamento:hover {
+    color: #c82333 !important;
+}
+
+.adicionar-pagamento {
+    margin-top: auto;
+    width: auto;
+    padding: 8px 12px;
+    font-size: 0.9em;
+}
+
+.sem-filhos-gestao {
+    text-align: center;
+    color: #777;
+    padding: 40px;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    margin-top: 30px;
+    font-size: 1.1em;
+}
+
+.sem-filhos-gestao a {
+    color:#1a8b5e;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.sem-filhos-gestao a:hover {
+    text-decoration: underline;
+}
+
+/* Estilos para a página de Dicas */
+.dicas-box {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.dicas-box p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+    color: #444;
+}
+
+.dicas-box p strong {
+    color: #23bb86;
+}
+
+/* --- Estilos para o Modal --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 30px;
+    border: 1px solid #888;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+.modal-content h2 {
+    color: #23bb86;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Ajustes para inputs dentro do modal */
+.modal-content input[type="number"],
+.modal-content input[type="text"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.modal-content button[type="submit"] {
+    background-color: #1a8b5e;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.modal-content button[type="submit"]:hover {
+    background-color: #156d4a;
+}
+
+/* --- Estilos para Navegação de Ano --- */
+.year-navigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding: 15px 0;
+    border-top: 1px solid #eee;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+}
+
+.year-navigation .nav-btn {
+    background-color: #23bb86;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s ease;
+    width: auto;
+}
+
+.year-navigation .nav-btn:hover {
+    background-color: #1a8b5e;
+}
+
+.year-navigation .current-year {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #333;
+    min-width: 80px;
+    text-align: center;
+}
+
+/* Estilos para o toggle de habilitação de ano */
+.year-enable-toggle {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+}
+
+.year-enable-toggle label {
+    display: inline-flex;
+    align-items: center;
+    font-weight: normal;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.year-enable-toggle input[type="checkbox"] {
+    margin-right: 8px;
+    width: auto;
+    margin-bottom: 0;
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+.year-enable-toggle small {
+    display: block;
+    color: #666;
+    font-size: 0.85em;
+    margin-top: 5px;
+}
+
+
+@media (max-width: 500px) {
+    .year-navigation {
+        flex-wrap: wrap;
+        padding: 10px;
+    }
+    .year-navigation .nav-btn {
+        flex-grow: 1;
+        justify-content: center;
+        padding: 8px 10px;
+    }
+    .year-navigation .current-year {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    .year-enable-toggle label {
+        flex-direction: column;
+    }
+}
+
+#filhoTabs { /* Usamos o ID diretamente, já que ele é único para o container das abas */
+    display: flex; /* Permite que os itens fiquem lado a lado */
+    justify-content: flex-start; /* Alinha as abas à esquerda */
+    gap: 5px; /* Espaçamento entre os botões das abas */
+    margin-bottom: 0; /* Remove a margem inferior para que a linha de baixo se "conecte" */
+    border-bottom: 2px solid #eee; /* Linha de base para as abas */
+    padding-bottom: 0; /* Ajusta o padding para a borda inferior se "conectar" */
+    overflow-x: auto; /* Adiciona rolagem horizontal se houver muitas abas */
+    flex-wrap: nowrap; /* Evita que as abas quebrem para a próxima linha */
+    align-items: flex-end; /* Alinha as abas pela parte inferior */
+}
+
+/* Estilo para os Botões das Abas */
+.tab-button {
+    background-color: #f0f0f0; /* Cor de fundo padrão para abas inativas */
+    color: #555;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-bottom: none; /* Remove a borda inferior para parecer que se conecta à linha de base */
+    border-radius: 8px 8px 0 0; /* Bordas arredondadas apenas no topo */
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    white-space: nowrap; /* Evita que o texto quebre */
+    flex-shrink: 0; /* Impede que os botões encolham */
+    position: relative; /* Para ajustes finos de posicionamento */
+    top: 2px; /* Eleva um pouco para "encaixar" na linha de baixo */
+}
+
+.tab-button:hover {
+    background-color: #e0e0e0; /* Um pouco mais escuro no hover */
+}
+
+.tab-button.active {
+    background-color: #23bb86; /* Verde principal para a aba ativa */
+    color: white;
+    border-color: #23bb86; /* Borda da mesma cor da aba ativa */
+    font-weight: bold;
+    top: 2px; /* Mantém a posição similar para não "pular" */
+    border-bottom: 2px solid #23bb86; /* Adiciona uma borda inferior para simular a conexão */
+    z-index: 1; /* Garante que a aba ativa fique por cima da linha */
+}
+
+/* Estilos para o conteúdo de cada filho (que aparece abaixo da aba) */
+.filho-content {
+    display: none; /* Esconde todos os conteúdos por padrão */
+    padding: 20px; /* Adiciona padding para separar do container e dos detalhes */
+    background-color: #fff; /* Fundo branco para o conteúdo */
+    border: 1px solid #eee; /* Borda para separar o conteúdo do resto */
+    border-top: none; /* Remove a borda superior para conectar com a aba */
+    border-radius: 0 0 8px 8px; /* Arredonda apenas as bordas inferiores */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.05); /* Sombra suave */
+    margin-top: 0; /* Garante que não haja espaço entre a aba e o conteúdo */
+}
+
+.filho-content.active {
+    display: block; /* Mostra o conteúdo da aba ativa */
+}

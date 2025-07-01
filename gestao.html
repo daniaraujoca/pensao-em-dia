@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Pensão - Minha Pensão</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <header class="menu-superior">
+        <h1>Pensão em Dia</h1>
+        <nav class="abas-navegacao">
+            <a href="cadastrofilho.html" class="aba">Cadastro de Filhos</a>
+            <a href="gestao.html" class="aba">Gestão de Pensão</a>
+            <a href="dicas.html" class="aba">Dicas</a>
+        </nav>
+        <span id="nomeUsuarioLogado" class="bem-vindo-usuario"></span>
+        <button id="logoutBtn" class="logout-btn">Sair</button>
+    </header>
+
+    <div class="container">
+        <h1>Gestão de Pensão Alimentícia</h1>
+
+        <div class="tabs-container">
+            <div id="filhoTabs" class="tabs-header">
+                </div>
+            <div id="filhosContent" class="tabs-content">
+                </div>
+        </div>
+
+        <div id="filhosContainer" style="display: none;">
+            </div>
+
+        <div id="pagamentoModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>Registrar Pagamento</h2>
+                <form id="pagamentoForm">
+                    <div class="form-group">
+                        <label for="modalValor">Valor Pago (R$):</label>
+                        <input type="number" id="modalValor" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalData">Data do Pagamento:</label>
+                        <input type="text" id="modalData" placeholder="DD/MM/AAAA" maxlength="10" required>
+                    </div>
+                    <button type="submit" id="salvarPagamentoBtn">Salvar Pagamento</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="common.js"></script>
+    <script type="module" src="gestao.js"></script>
+</body>
+</html>

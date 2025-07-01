@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pensão em Dia - Recuperar Senha</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="login-container">
+        <h2>Recuperar Senha</h2>
+        <form id="recuperarSenhaForm">
+            <p>Informe seu e-mail para recuperar o acesso.</p>
+            <label for="emailRecuperacao">Email:</label>
+            <input type="email" id="emailRecuperacao" name="emailRecuperacao" placeholder="Digite seu e-mail cadastrado" required />
+
+            <button type="submit">Enviar Link de Recuperação</button>
+        </form>
+        <div class="link-login">
+            <p>Lembrou? <a href="index.html">Voltar para o Login</a></p>
+        </div>
+        <!-- Este div será usado para exibir mensagens de sucesso ou erro ao utilizador -->
+        <div id="feedbackRecuperacao" class="feedback-message" style="display: none;"></div>
+    </div>
+    <script type="module" src="common.js"></script>
+    <script type="module" src="recuperar-senha.js"></script>
+</body>
+</html>
