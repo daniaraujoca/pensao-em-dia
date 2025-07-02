@@ -7,6 +7,10 @@ from datetime import datetime, date, timedelta, UTC
 import json
 import secrets
 
+# Importações para SendGrid
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Email, To # Adicionado To para destinatário
+
 app = Flask(__name__)
 
 # --- CONFIGURAÇÃO DO CORS (AGORA MANUAL VIA after_request) ---
@@ -26,12 +30,14 @@ def add_cors_headers(response):
 
 
 # --- CONFIGURAÇÕES DA APLICAÇÃO ---
-app.config['SECRET_KEY'] = 'meu_abacate'
+# Use a SECRET_KEY de uma variável de ambiente. O fallback é apenas para desenvolvimento local.
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'meu_abacate_secreto_e_longo_para_testes')
 # Use DATABASE_URL do Render para PostgreSQL, ou fallback para um valor padrão
 # O Render irá injetar a URL do seu banco de dados PostgreSQL aqui.
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SAMESITE'] = 'None' # Alterado para 'None' para compatibilidade cross-site em HTTPS
+app.config['SESSION_COOKIE_SECURE'] = True # Adicionado, necessário se SAMESITE for 'None' e você estiver em HTTPS
 
 db = SQLAlchemy(app)
 
@@ -244,11 +250,37 @@ def forgot_password():
     frontend_base_url = os.environ.get('FRONTEND_BASE_URL', 'http://127.0.0.1:5500')
     reset_link = f"{frontend_base_url}/redefinir-senha.html?token={token}"
 
-    print(f"\n--- SIMULAÇÃO DE E-MAIL DE RECUPERAÇÃO DE PALAVRA-PASSE ---")
-    print(f"Para: {user.email}")
-    print(f"Assunto: Redefinição de Palavra-Passe")
-    print(f"Corpo: Olá {user.name},\n\nVocê solicitou a redefinição da sua palavra-passe. Clique no link abaixo para redefinir:\n{reset_link}\n\nEste link é válido por 1 hora.\n\nSe você não solicitou isso, por favor, ignore este e-mail.")
-    print(f"--- FIM DA SIMULAÇÃO ---\n")
+    # --- INÍCIO DA INTEGRAÇÃO SENDGRID ---
+    sendgrid_api_key = os.environ.get('SENDGRID_API_KEY')
+    sender_email = os.environ.get('SENDGRID_SENDER_EMAIL') # O e-mail verificado no SendGrid
+
+    if not sendgrid_api_key or not sender_email:
+        print("Erro: SENDGRID_API_KEY ou SENDGRID_SENDER_EMAIL não configurados. E-mail de recuperação não enviado.")
+        print(f"\n--- SIMULAÇÃO DE E-MAIL DE RECUPERAÇÃO DE PALAVRA-PASSE ---")
+        print(f"Para: {user.email}")
+        print(f"Assunto: Redefinição de Palavra-Passe")
+        print(f"Corpo: Olá {user.name},\n\nVocê solicitou a redefinição da sua palavra-passe. Clique no link abaixo para redefinir:\n{reset_link}\n\nEste link é válido por 1 hora.<br><br>Se você não solicitou isso, por favor, ignore este e-mail.")
+        print(f"--- FIM DA SIMULAÇÃO ---\n")
+    else:
+        try:
+            message = Mail(
+                from_email=Email(sender_email, 'Pensão em Dia Suporte'), # Remetente verificado no SendGrid
+                to_emails=To(user.email), # Destinatário
+                subject='Redefinição de Palavra-Passe - Pensão em Dia',
+                html_content=f'Olá {user.name},<br><br>Você solicitou a redefinição da sua palavra-passe. Clique no link abaixo para redefinir:<br><a href="{reset_link}">{reset_link}</a><br><br>Este link é válido por 1 hora.<br><br>Se você não solicitou isso, por favor, ignore este e-mail.'
+            )
+            sg = SendGridAPIClient(sendgrid_api_key)
+            response = sg.send(message)
+            print(f"E-mail de recuperação enviado para {user.email}. Status Code: {response.status_code}")
+        except Exception as e:
+            print(f"Erro ao enviar e-mail de recuperação com SendGrid: {e}")
+            # Fallback para log se o envio falhar
+            print(f"\n--- SIMULAÇÃO DE E-MAIL DE RECUPERAÇÃO DE PALAVRA-PASSE (ERRO NO ENVIO REAL) ---")
+            print(f"Para: {user.email}")
+            print(f"Assunto: Redefinição de Palavra-Passe")
+            print(f"Corpo: Olá {user.name},\n\nVocê solicitou a redefinição da sua palavra-passe. Clique no link abaixo para redefinir:\n{reset_link}\n\nEste link é válido por 1 hora.\n\nSe você não solicitou isso, por favor, ignore este e-mail.")
+            print(f"--- FIM DA SIMULAÇÃO ---\n")
+    # --- FIM DA INTEGRAÇÃO SENDGRID ---
 
     return jsonify({"message": "Se o e-mail estiver registado, um link para redefinir a sua palavra-passe foi enviado para ele."}), 200
 
