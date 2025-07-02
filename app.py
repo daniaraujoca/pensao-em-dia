@@ -3,7 +3,7 @@
 import os
 from flask import Flask, request, jsonify, session, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, date, timedelta, UTC # Importado UTC
+from datetime import datetime, date, timedelta, UTC
 import json
 import secrets
 
@@ -12,8 +12,10 @@ app = Flask(__name__)
 # --- CONFIGURAÇÃO DO CORS (AGORA MANUAL VIA after_request) ---
 @app.after_request
 def add_cors_headers(response):
-    # Permite requisições do seu frontend Live Server (porta 5500)
-    response.headers.add('Access-Control-Allow-Origin', 'http://127.0.0.1:5500')
+    # Permite requisições de qualquer origem para o deploy inicial.
+    # Em produção, você deve restringir isso ao domínio do seu frontend.
+    # Exemplo: 'https://seu-frontend-pensao.onrender.com'
+    response.headers.add('Access-Control-Allow-Origin', '*')
     # Permite que o navegador envie cookies de sessão (para manter o login)
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     # Permite cabeçalhos comuns que o navegador pode enviar
@@ -24,8 +26,10 @@ def add_cors_headers(response):
 
 
 # --- CONFIGURAÇÕES DA APLICAÇÃO ---
-app.config['SECRET_KEY'] = 'meu_abacate' 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost/pensaoemdia_db'
+app.config['SECRET_KEY'] = 'meu_abacate'
+# Use DATABASE_URL do Render para PostgreSQL, ou fallback para um valor padrão
+# O Render irá injetar a URL do seu banco de dados PostgreSQL aqui.
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
@@ -40,8 +44,7 @@ class User(db.Model):
     surname = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    # Usar datetime.now(UTC) para created_at para consistência
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC)) 
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
     children = db.relationship('Child', backref='user', lazy=True, cascade="all, delete-orphan")
     reset_tokens = db.relationship('PasswordResetToken', backref='user', lazy=True, cascade="all, delete-orphan")
 
@@ -89,12 +92,11 @@ class Payment(db.Model):
     payment_date = db.Column(db.Date, nullable=False)
     month_reference = db.Column(db.Integer, nullable=True)
     year_reference = db.Column(db.Integer, nullable=True)
-    # Usar datetime.now(UTC) para created_at para consistência
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
 
     def to_dict(self):
         return {
-            'id': self.id, 
+            'id': self.id,
             'child_id': self.child_id,
             'amount': self.value_paid,
             'payment_date': self.payment_date.isoformat() if self.payment_date else None,
@@ -110,7 +112,6 @@ class PasswordResetToken(db.Model):
     token = db.Column(db.String(255), unique=True, nullable=False)
     expires_at = db.Column(db.DateTime, nullable=False)
     used = db.Column(db.Boolean, default=False, nullable=False)
-    # Usar datetime.now(UTC) para created_at para consistência
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(UTC))
 
     def to_dict(self):
@@ -123,8 +124,9 @@ class PasswordResetToken(db.Model):
             'created_at': self.created_at.isoformat()
         }
 
-with app.app_context():
-    db.create_all()
+# Comentado para deploy em produção, pois o banco de dados já foi populado
+# with app.app_context():
+#     db.create_all()
 
 # --- HELPERS DE AUTENTICAÇÃO ---
 def login_required(f):
@@ -141,26 +143,21 @@ def login_required(f):
 def serve_index():
     return send_from_directory('.', 'index.html')
 
-@app.route('/<path:filename>')
-def serve_static(filename):
-    allowed_files = [
-        'index.html', 'cadastro.html', 'cadastrofilho.html', 'dicas.html',
-        'gestao.html', 'recuperar-senha.html', 'redefinir-senha.html',
-        'style.css', 'common.js',
-        'login.js', 'cadastro.js', 'cadastrofilho.js', 'recuperar-senha.js',
-        'gestao.js', 'script.js', 'manifest.json', 'image_ae883d.png',
-        'image_ad3245.png', 'image_ad2b5d.png',
-        'favicon.ico' # <--- ADICIONADO AQUI
-    ]
-    
-    if filename.startswith('icons/'):
-        icon_name = filename.split('/')[-1]
-        return send_from_directory('icons', icon_name)
-    
-    if filename in allowed_files:
-        return send_from_directory('.', filename)
-    
-    return "Ficheiro não encontrado", 404
+# Rota para servir ficheiros estáticos do frontend
+@app.route('/<path:path>')
+def serve_static_files(path):
+    # Tenta servir o ficheiro diretamente da raiz do projeto
+    # Isso é útil para HTML, CSS, JS e outros ativos na raiz
+    try:
+        return send_from_directory('.', path)
+    except Exception:
+        # Se não encontrar na raiz, tenta servir de uma pasta 'icons'
+        # Assumindo que os ícones estão numa subpasta 'icons'
+        if path.startswith('icons/'):
+            icon_name = path.split('/')[-1]
+            return send_from_directory('icons', icon_name)
+        # Se não for encontrado em nenhum dos locais, retorna 404
+        return "Ficheiro não encontrado", 404
 
 # --- ROTAS DA API (BACKEND) ---
 
@@ -225,7 +222,7 @@ def forgot_password():
         return jsonify({'message': 'Erro ao processar os dados da requisição.'}), 400
 
     email = data.get('email')
-    
+
     if not email:
         print("Erro: E-mail em falta na requisição forgot-password.")
         return jsonify({'message': 'Por favor, forneça o e-mail para recuperação.'}), 400
@@ -243,7 +240,9 @@ def forgot_password():
     db.session.commit()
     print(f"Token de recuperação gerado e salvo para o utilizador {user.email}.")
 
-    reset_link = f"http://127.0.0.1:5500/redefinir-senha.html?token={token}"
+    # Use uma variável de ambiente para o domínio do frontend em produção
+    frontend_base_url = os.environ.get('FRONTEND_BASE_URL', 'http://127.0.0.1:5500')
+    reset_link = f"{frontend_base_url}/redefinir-senha.html?token={token}"
 
     print(f"\n--- SIMULAÇÃO DE E-MAIL DE RECUPERAÇÃO DE PALAVRA-PASSE ---")
     print(f"Para: {user.email}")
@@ -287,7 +286,7 @@ def reset_password():
         expires_at_aware = reset_token.expires_at.replace(tzinfo=UTC)
     else:
         expires_at_aware = reset_token.expires_at
-        
+
     if expires_at_aware < datetime.now(UTC):
         print(f"Erro: Token expirado. Expira em: {reset_token.expires_at}, Agora: {datetime.now(UTC)}")
         return jsonify({'message': 'Token expirado.'}), 400
@@ -309,11 +308,11 @@ def reset_password():
 def add_child():
     data = request.get_json()
     full_name = data.get('full_name')
-    gender = data.get('gender') 
+    gender = data.get('gender')
     date_of_birth_str = data.get('date_of_birth')
     monthly_alimony_value = data.get('monthly_alimony_value')
     user_id = session.get('user_id')
-    enabled_years = data.get('enabled_years', [datetime.now().year]) 
+    enabled_years = data.get('enabled_years', [datetime.now().year])
 
     if not all([full_name, gender, date_of_birth_str, monthly_alimony_value]):
         return jsonify({'message': 'Dados em falta'}), 400
@@ -327,7 +326,7 @@ def add_child():
     new_child = Child(
         user_id=user_id,
         full_name=full_name,
-        gender=gender, 
+        gender=gender,
         date_of_birth=date_of_birth,
         monthly_alimony_value=monthly_alimony_value,
         enabled_years=enabled_years
@@ -351,7 +350,7 @@ def get_child_detail(child_id):
 
     if not child:
         return jsonify({'message': 'Filho não encontrado ou não autorizado'}), 404
-    
+
     return jsonify(child.to_dict()), 200
 
 @app.route('/api/children/<int:child_id>', methods=['PUT'])
@@ -365,22 +364,22 @@ def update_child(child_id):
 
     data = request.get_json()
     child.full_name = data.get('full_name', child.full_name)
-    child.gender = data.get('gender', child.gender) 
-    
+    child.gender = data.get('gender', child.gender)
+
     date_of_birth_str = data.get('date_of_birth')
     if date_of_birth_str:
         try:
             child.date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
         except ValueError:
             return jsonify({'message': 'Formato de data inválido'}), 400
-            
+
     monthly_alimony_value = data.get('monthly_alimony_value')
     if monthly_alimony_value is not None:
         try:
             child.monthly_alimony_value = float(monthly_alimony_value)
         except (ValueError, TypeError):
             return jsonify({'message': 'Formato de valor de pensão mensal inválido'}), 400
-    
+
     enabled_years_data = data.get('enabled_years')
     if enabled_years_data is not None:
         if isinstance(enabled_years_data, list):
@@ -411,8 +410,8 @@ def add_payment():
     child_id = data.get('child_id')
     amount_from_frontend = data.get('amount')
     payment_date_str = data.get('payment_date')
-    month_reference = data.get('month_reference') 
-    year_reference = data.get('year_reference')   
+    month_reference = data.get('month_reference')
+    year_reference = data.get('year_reference')
     user_id = session.get('user_id')
 
     if not all([child_id, amount_from_frontend, payment_date_str]):
@@ -429,7 +428,7 @@ def add_payment():
         if year_reference is not None: year_reference = int(year_reference)
     except (ValueError, TypeError):
         return jsonify({'message': 'Formato de data, valor, mês ou ano inválido'}), 400
-    
+
     if payment_date > date.today():
         return jsonify({'message': 'A data de pagamento não pode ser no futuro'}), 400
 
@@ -448,7 +447,7 @@ def add_payment():
 @login_required
 def get_payments_by_child_id(child_id):
     user_id = session.get('user_id')
-    
+
     child = Child.query.filter_by(id=child_id, user_id=user_id).first()
     if not child:
         return jsonify({'message': 'Filho não encontrado ou não autorizado'}), 404
@@ -466,8 +465,8 @@ def update_payment(payment_id):
     data = request.get_json()
     amount_from_frontend = data.get('amount')
     payment_date_str = data.get('payment_date')
-    month_reference = data.get('month_reference') 
-    year_reference = data.get('year_reference')   
+    month_reference = data.get('month_reference')
+    year_reference = data.get('year_reference')
     user_id = session.get('user_id')
 
     payment = Payment.query.get(payment_id)
@@ -492,7 +491,7 @@ def update_payment(payment_id):
             payment.payment_date = new_payment_date
         except ValueError:
             return jsonify({'message': 'Formato de data inválido'}), 400
-    
+
     if month_reference is not None:
         try:
             payment.month_reference = int(month_reference)
@@ -524,6 +523,6 @@ def delete_payment(payment_id):
     db.session.commit()
     return jsonify({'message': 'Pagamento excluído com sucesso'}), 200
 
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+# Comentado para deploy em produção, o servidor WSGI (Gunicorn) irá iniciar a aplicação
+# if __name__ == '__main__':
+#     app.run(debug=True, port=5000)
