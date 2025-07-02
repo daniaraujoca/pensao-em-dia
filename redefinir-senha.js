@@ -8,13 +8,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const feedbackRedefinicaoDiv = document.getElementById("feedbackRedefinicao");
 
     // URL base do seu backend Flask
-    const BACKEND_BASE_URL = "http://127.0.0.1:5000"; // <<--- CORREÇÃO AQUI: Aponta para o Flask
+    // No deploy, esta URL será o domínio do seu backend no Render
+    const BACKEND_BASE_URL = window.location.origin;
 
     // Função para extrair o token da URL
     function getTokenFromUrl() {
         const params = new URLSearchParams(window.location.search);
         const token = params.get('token');
-        console.log("Token lido da URL:", token); // <<--- MENSAGEM DE DEBUG AQUI
+        console.log("Token lido da URL:", token);
         return token;
     }
 
@@ -26,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Opcional: redirecionar para a página de solicitação de recuperação após um tempo
         setTimeout(() => {
             window.location.href = 'recuperar-senha.html';
-        }, 3000); 
+        }, 3000);
         return; // Parar a execução do script
     }
 
@@ -60,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         try {
             // Enviar o token e a nova palavra-passe para a rota de redefinição no backend
-            const response = await fetch(`${BACKEND_BASE_URL}/api/reset-password`, { // <<--- CORREÇÃO AQUI
+            const response = await fetch(`${BACKEND_BASE_URL}/api/reset-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -105,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function() {
             setTimeout(() => {
                 feedbackRedefinicaoDiv.style.display = 'none';
                 feedbackRedefinicaoDiv.textContent = '';
-            }, 5000); 
+            }, 5000);
         }
     }
 });
