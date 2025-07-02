@@ -6,7 +6,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const feedbackRecuperacaoDiv = document.getElementById("feedbackRecuperacao");
 
     // URL base do seu backend Flask
-    const BACKEND_BASE_URL = "http://127.0.0.1:5000"; // <<--- CORREÇÃO AQUI: Aponta para o Flask
+    // No deploy, esta URL será o domínio do seu backend no Render
+    const BACKEND_BASE_URL = window.location.origin;
 
     recuperarSenhaForm.addEventListener("submit", async function(event) {
         event.preventDefault(); // Prevenir o comportamento padrão de submissão do formulário
@@ -22,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         try {
             // Enviar o e-mail para a rota de recuperação no backend
-            const response = await fetch(`${BACKEND_BASE_URL}/api/forgot-password`, { // <<--- CORREÇÃO AQUI
+            const response = await fetch(`${BACKEND_BASE_URL}/api/forgot-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -57,6 +58,6 @@ document.addEventListener("DOMContentLoaded", function() {
         setTimeout(() => {
             feedbackRecuperacaoDiv.style.display = 'none';
             feedbackRecuperacaoDiv.textContent = '';
-        }, 5000); 
+        }, 5000);
     }
 });
